@@ -80,6 +80,61 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
 .stat{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--line);font-size:15px}
 .log{text-align:left;font-size:14px;color:#d6e0ea}
 #bigc{width:120px;height:120px;display:block;margin:6px auto}
+/* タイトル画面(KROPKI・Dungeon Chainと同じ流れ: タイトル → ゲーム) */
+#title{position:fixed;inset:0;z-index:8;display:none;flex-direction:column;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom))}
+#title.on{display:flex}
+body.onTitle #app{visibility:hidden}
+.tPortal{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;min-height:44px;display:flex;align-items:center;padding:0 16px;border-radius:14px;background:var(--btn);color:var(--ink);font:800 16px var(--f);text-decoration:none}
+.tHero{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%}
+#tCv{width:min(70vw,290px);height:min(70vw,290px);max-height:38vh;max-width:38vh}
+.tLogo{font-size:46px;font-weight:800;letter-spacing:.14em;line-height:1;margin:6px 0 0 .14em}
+#ver{margin-top:6px;background:none;border:0;color:var(--sub);font:500 14px var(--f);padding:6px 10px;min-height:36px}
+#ver.new{color:#e0bd6a;font-weight:800}
+.tBest{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:15px;min-height:40px}
+.tBest canvas{width:36px;height:36px}
+.tBest b{color:var(--ink)}
+.tMain,.tSub{width:100%;max-width:380px}
+.tSub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.tSub button,.tile{min-height:76px;border:0;border-radius:16px;background:var(--btn);color:var(--ink);font:800 14px var(--f);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 4px}
+.tSub svg,.tile svg{width:26px;height:26px}
+.tgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.tgrid.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pics.sm canvas{width:24px;height:24px}
+.btn.danger{background:rgba(217,112,95,.16);color:#f2a493}
+#a2hChip{display:flex;width:100%;max-width:380px;margin-top:12px;border-radius:14px;background:var(--panel);overflow:hidden;text-align:left}
+#a2hChip button{background:none;border:0;color:var(--ink);font-family:var(--f)}
+#a2hGo{flex:1;display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:56px}
+#a2hGo b{display:block;font-size:15px}#a2hGo small{display:block;font-size:12px;color:var(--sub);font-weight:500}#a2hGo i{margin-left:auto;font-style:normal;color:var(--sub)}
+#a2hX{width:48px;color:var(--sub);font-size:18px}
+.hidden{display:none!important}
+/* 設定(KROPKIと同じ、横並びの切り替え) */
+.set .srow{margin:0;padding:10px 2px;border-bottom:1px solid var(--line);text-align:left}
+.set .srow small{display:block}
+.rowBtn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:54px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:800 16px var(--f);padding:0 2px;text-align:left}
+.rowBtn .rs{color:var(--sub);font-weight:500}
+.dbtn{border:0;border-radius:10px;background:rgba(217,112,95,.16);color:#f2a493;font:800 15px var(--f);min-height:42px;padding:0 16px}
+.newb{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:8px;background:#e0bd6a;color:#141a3a;font-size:11px;font-weight:800;vertical-align:middle}
+.lk{background:none;border:0;color:var(--sub);font:500 13px var(--f);padding:2px 0;text-decoration:underline}
+/* 遊び方(文章でなく図で) */
+.hrow{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 0;border-bottom:1px solid var(--line)}
+.pics{display:flex;align-items:center;flex:none;min-width:112px;justify-content:center}
+.pics canvas{width:30px;height:30px}
+.pics i{font-style:normal;color:var(--sub);margin:0 3px}
+.pics svg{width:30px;height:30px}
+.hrow p{margin:0;font-size:15px;line-height:1.45;color:#d6e0ea}
+.chip{display:inline-block;padding:3px 10px;border-radius:10px;background:var(--btn);font-size:13px}
+/* ホーム画面に追加の案内(初めてブラウザで開いたとき) */
+#instOv{position:fixed;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top)) 22px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--bg1),var(--bg2))}
+.instBox{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.instBox img{width:96px;height:96px;border-radius:22px;margin-bottom:12px}
+.instBox h1{margin:0 0 14px;font-size:34px;letter-spacing:.14em;font-weight:800}
+.instLead{margin:0 0 16px;font-size:19px;font-weight:800;line-height:1.5}
+.instFx{list-style:none;margin:0 0 22px;padding:12px 16px;width:100%;border-radius:14px;background:var(--panel);text-align:left}
+.instFx li{display:flex;gap:10px;font-size:15px;padding:5px 0}
+.a2h{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.a2h b{border:2px solid var(--acc);border-radius:10px;padding:7px 12px;font-size:16px}
+.a2note{font-size:14px;color:var(--sub);margin:4px 0 0}
+.instSkip{margin-top:22px;background:none;border:0;color:var(--sub);font:500 15px var(--f);text-decoration:underline;padding:10px;min-height:44px}
 @media (prefers-reduced-motion:reduce){.panel{animation:none}#score{transition:none}}
 </style>
 </head>
@@ -99,11 +154,42 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
     <button class="ub" id="undoB" aria-label="1手戻す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/></svg><b id="undoN">2</b></button>
   </footer>
 </div>
+<div id="title">
+  <a class="tPortal hidden" id="tPortal" href="/">‹ 一覧</a>
+  <div class="tHero">
+    <canvas id="tCv" aria-hidden="true"></canvas>
+    <div class="tLogo">LAPIS</div>
+    <button id="ver"></button>
+    <div class="tBest" id="tBest"></div>
+  </div>
+  <div class="tMain">
+    <button class="btn pri" id="tCont">続きから</button>
+    <button class="btn" id="tNew">新しく始める</button>
+  </div>
+  <div class="tSub">
+    <button id="tGal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3" fill="currentColor"/></svg>図鑑</button>
+    <button id="tSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>設定</button>
+    <button id="tHelp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 1 1 3.7 2.7c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>遊び方</button>
+  </div>
+  <div id="a2hChip" class="hidden"><button id="a2hGo"><span style="font-size:22px">📲</span><span><b>ホーム画面に追加</b><small>全画面ですぐ遊べる</small></span><i>›</i></button><button id="a2hX" aria-label="閉じる">✕</button></div>
+</div>
+<div id="instOv" class="hidden">
+  <div class="instBox">
+    <img src="icon-192.png" alt="">
+    <h1>LAPIS</h1>
+    <p class="instLead">ホーム画面にアイコンを追加して<br>アプリとして遊びましょう</p>
+    <ul class="instFx"><li><span>📱</span>全画面で遊べます</li><li><span>⚡</span>アイコンをタップするだけで、すぐ起動</li><li><span>📶</span>電波がないところでも遊べます</li></ul>
+    <button class="btn pri" id="instGo">📲 ホーム画面に追加</button>
+    <div id="instSteps"></div>
+    <button class="instSkip" id="instSkip">今はブラウザで遊ぶ</button>
+  </div>
+</div>
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.3.8';
+const VER='0.4.0';
 const CHANGES=[
+  ['0.4.0','2026-11-23',['🏠 タイトル画面ができました。KROPKI・Dungeon Chainと同じく、ここから「‹ 一覧」に戻れます','⚙ 設定を独立した画面にして、ほかのゲームと同じ並びにしました(記録のリセット・すべて初期化も追加)','❓ 図で見る「遊び方」と、ゲーム中のメニュー(遊び方・設定・タイトルへ・図鑑・あきらめる)を追加しました','📲 ブラウザで初めて開いたときは、ホーム画面への追加を案内します']],
   ['0.3.8','2026-11-23',['📱 ゲームコレクションの全画面表示に対応しました']],
   ['0.3.7','2026-11-23',['📱 ゲーム一覧から開いたとき、画面の下が隠れることがあったのを直しました（その2）']],
   ['0.3.6','2026-11-23',['☄ ＋は「彗星」、－は「ワームホール」、黒い＋は「暗黒彗星」になりました。惑星とひと目で見分けられます']],
@@ -133,7 +219,7 @@ let NOW=0,ROT=0,lastT=0;
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const tipEl=$('#tip');
-let S=null,ST={best:0,bestT:0,games:0,found:[],tut:false},SET={sound:true,vib:true,bgm:1,share:0};
+let onTitle=false,S=null,ST={best:0,bestT:0,games:0,found:[],tut:false},SET={sound:true,vib:true,bgm:1,share:0};
 let disp={},ghosts=[],parts=[],fx=[];
 let busy=false,hover=null,pdown=false,size=300,dpr=1,tut=null,saved=null,cS=1,simKey='',sim=null,tipLock=0;
 
@@ -283,7 +369,7 @@ function corona(c,x,y,r,col,spread,seed,t,a0){
 function satPath(c,x,y,r,tilt,col,front){c.save();c.translate(x,y);c.rotate(tilt);c.lineWidth=Math.max(.8,r*.022);c.strokeStyle=rgba(col,.22);c.beginPath();c.ellipse(0,0,r*1.5,r*.42,0,front?0:Math.PI,front?Math.PI:TAU);c.stroke();c.restore()}
 function satDot(c,x,y,r,tilt,ph,col,front){const sn=Math.sin(ph);if((sn>=0)!==front)return;const ex=Math.cos(ph)*r*1.5,ey=sn*r*.42,ct=Math.cos(tilt),st=Math.sin(tilt);const px=x+ex*ct-ey*st,py=y+ex*st+ey*ct,rr=Math.max(2.4,r*.15),g=c.createRadialGradient(px,py,0,px,py,rr);g.addColorStop(0,rgba(col,.85));g.addColorStop(.3,rgba(col,.38));g.addColorStop(1,rgba(col,0));c.fillStyle=g;c.beginPath();c.arc(px,py,rr,0,TAU);c.fill()}
 function sats(o,v){if(bodyOf(v)[0]==='環のある惑星')return 2;if(!o||o.id==null)return 0;const h=hr(o.id,97);return h<.06?2:h<.24?1:0}
-function drawBody(c,x,y,r,v,t,o){
+function drawBody(c,x,y,r,v,t,o,noNum){
   t=t||0;const b=bodyOf(v),k=b[1],col=b[2],cor=corOf(v),g=Math.floor((v-1)/BODIES.length);
   const seed=o&&o.id!=null?hr(o.id,31):hr(v,31),ns=sats(o,v),tilt=-.35+(seed-.5)*.5,spd=t/(2600+seed*1300);
   c.save();
@@ -293,6 +379,7 @@ function drawBody(c,x,y,r,v,t,o){
   if(ns){satPath(c,x,y,r,tilt,cor,false);for(let i=0;i<ns;i++)satDot(c,x,y,r,tilt,spd+i*Math.PI*.9,tint(cor,.5),false)}
   disc(c,x,y,r*.9,col);
   if(ns){satPath(c,x,y,r,tilt,cor,true);for(let i=0;i<ns;i++)satDot(c,x,y,r,tilt,spd+i*Math.PI*.9,tint(cor,.5),true)}
+  if(noNum){c.restore();return}
   const s=String(v),fs=r*(s.length>1?.76:.92),dark=lum(col)>.42;
   c.font=`800 ${fs}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';
   c.fillStyle=dark?'#1b1f3a':'#ffffff';c.fillText(s,x,y+fs*.05);
@@ -411,7 +498,7 @@ function draw(t){
 }
 let errLogged=false;
 const RM=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})();
-function frame(t){requestAnimationFrame(frame);try{draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
+function frame(t){requestAnimationFrame(frame);try{if(onTitle)drawTitle(t);else draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
 function posOf(id){const d=disp[id],{cx,cy,R}=geo();return d?{x:cx+Math.cos(d.a+ROT)*R*d.r,y:cy+Math.sin(d.a+ROT)*R*d.r}:{x:cx,y:cy}}
 function burst(x,y,col,n=10){n=Math.min(n,12);for(let i=0;i<n;i++){const a=Math.random()*TAU,sp=2+Math.random()*4;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1,s:2+Math.random()*3,c:col})}}
 
@@ -444,7 +531,7 @@ function hit(p){
   if(S.center.t==='m'){if(!n)return null;return{k:'a',i:Math.round(r)%n}}
   return{k:'g',i:n?Math.floor(r)+1:0};
 }
-function locked(){return busy||!S||S.over||S.pend||$('#ov').classList.contains('on')}
+function locked(){return onTitle||busy||!S||S.over||S.pend||$('#ov').classList.contains('on')}
 cv.addEventListener('pointerdown',e=>{ac();if(locked())return;pdown=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}hover=hit(local(e))});
 cv.addEventListener('pointermove',e=>{if(!pdown||locked())return;hover=hit(local(e))});
 cv.addEventListener('pointerup',e=>{if(!pdown)return;pdown=false;const h=hit(local(e));hover=null;if(!locked())act(h)});
@@ -567,51 +654,192 @@ async function applyPerk(k){
 }
 
 /* ---------- ゲームオーバー ---------- */
-function gameOver(){
+function gameOver(ev){
   S.over=true;
   const nb=S.score>ST.best;
   ST.games++;ST.best=Math.max(ST.best,S.score);ST.bestT=Math.max(ST.bestT,S.maxT);store('lapis_st',ST);
-  S.newBest=nb;sendLog('over');save();sfx('over');vib([30,60,30]);refresh();
+  S.newBest=nb;sendLog(ev||'over');save();sfx('over');vib([30,60,30]);refresh();
   setTimeout(showOver,700);
 }
 function showOver(){
-  open(`<h2>おしまい</h2><canvas id="bigc"></canvas><div class="big">${S.score}</div><p>${S.newBest?'<b style="color:#d8bd6a">ベスト更新!</b>':'BEST '+ST.best}</p><p class="small">最大 ${S.chainMax} 連鎖 ・ ${S.moves} 手</p><button class="btn pri" id="againB">もう一度</button><button class="btn" id="galB2">図鑑</button>`);
+  open(`<h2>おしまい</h2><canvas id="bigc"></canvas><div class="big">${S.score}</div><p>${S.newBest?'<b style="color:#d8bd6a">ベスト更新!</b>':'BEST '+ST.best}</p><p class="small">最大 ${S.chainMax} 連鎖 ・ ${S.moves} 手</p><button class="btn pri" id="againB">もう一度</button><div class="row"><button class="btn" id="galB2">図鑑</button><button class="btn" id="ttlB">タイトルへ</button></div>`);
   paintMini($('#bigc'),{t:'n',v:S.maxT},120);
   $('#againB').onclick=()=>{close();newGame()};
   $('#galB2').onclick=()=>showGallery(showOver);
+  $('#ttlB').onclick=()=>showTitle();
 }
 
 /* ---------- 画面(オーバーレイ) ---------- */
 function open(h){$('#pn').innerHTML=h;$('#ov').classList.add('on')}
 function close(){$('#ov').classList.remove('on')}
+const SVG={
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 1 1 3.7 2.7c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>',
+  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
+  title:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h13V9.5"/></svg>',
+  gal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3" fill="currentColor"/></svg>',
+  skip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l8 7-8 7z"/><path d="M17 5v14"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="#aab5d8" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="#aab5d8"/></svg>',
+  undo:'<svg viewBox="0 0 24 24" fill="none" stroke="#aab5d8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/></svg>'
+};
+/* ゲーム中のメニュー(☰): Dungeon Chainと同じ形 */
 function showMenu(){
   if(busy)return;
-  open(`<h2>LAPIS</h2><p class="small">v${VER} ・ 永遠のベータ版</p>
-  <button class="btn pri" id="mC">続ける</button>
-  <button class="btn" id="mG">図鑑と記録</button>
-  <button class="btn" id="mT">遊び方をもう一度</button>
-  <div class="srow"><span>BGM</span><div class="seg" id="mB">${['OFF','小','中','大'].map((t,i)=>`<button data-v="${i}" class="${(SET.bgm||0)===i?'on':''}">${t}</button>`).join('')}</div></div>
-  <div class="row"><button class="btn" id="mS">効果音 ${SET.sound?'ON':'OFF'}</button><button class="btn" id="mV">振動 ${SET.vib?'ON':'OFF'}</button></div>
-  ${canShare()?`<div class="srow"><span>記録を送る</span><div class="seg" id="mR">${['OFF','ON'].map((t,i)=>`<button data-v="${i}" class="${(shareOn()?1:0)===i?'on':''}">${t}</button>`).join('')}</div></div><button class="plain" id="mI">送信内容について ›</button>`:''}
-  <button class="btn" id="mN">新しいゲーム</button>
-  <button class="btn" id="mU">更新内容</button>
-  ${/github\.io$/.test(location.hostname)?'<button class="btn" id="mP">ゲーム一覧へ</button>':''}`);
-  if($('#mP'))$('#mP').onclick=()=>{location.href='/'};
-  $('#mC').onclick=close;
-  $('#mG').onclick=()=>showGallery(showMenu);
-  $('#mT').onclick=()=>{close();startTut(S&&!S.over?S:null)};
-  document.querySelectorAll('#mB button').forEach(b=>b.onclick=()=>{ac();SET.bgm=+b.dataset.v;store('lapis_set',SET);bgmApply();showMenu()});
-  $('#mS').onclick=()=>{SET.sound=!SET.sound;store('lapis_set',SET);showMenu()};
-  $('#mV').onclick=()=>{SET.vib=!SET.vib;store('lapis_set',SET);showMenu()};
-  if(canShare()){
-    document.querySelectorAll('#mR button').forEach(b=>b.onclick=()=>{
-      if(b.dataset.v==='1'&&ST.consent!==1){openConsent(showMenu);return}
-      SET.share=+b.dataset.v;store('lapis_set',SET);try{localStorage.setItem('tkcy3_share',String(SET.share))}catch(e){}showMenu();
-    });
-    $('#mI').onclick=()=>openConsent(showMenu);
+  if(tut){
+    open(`<h2>メニュー</h2><div class="tgrid"><button class="tile" id="mK">${SVG.skip}飛ばす</button><button class="tile" id="mH">${SVG.help}遊び方</button><button class="tile" id="mT">${SVG.title}タイトルへ</button></div><button class="btn" id="mC">✕ 閉じる</button>`);
+    $('#mK').onclick=()=>{close();tutEnd()};$('#mH').onclick=()=>showHelp(showMenu,true);
+    $('#mT').onclick=()=>{tut=null;S=saved;saved=null;disp={};if(S)syncDisp();showTitle()};$('#mC').onclick=close;return;
   }
-  $('#mN').onclick=()=>{open(`<h2>新しいゲーム</h2><p>今のゲームは終わりになります</p><div class="row"><button class="btn" id="nN">やめる</button><button class="btn pri" id="nY">はじめる</button></div>`);$('#nN').onclick=showMenu;$('#nY').onclick=()=>{close();if(tut)tut=null;else if(S&&!S.over&&S.moves>0)sendLog('quit');newGame()}};
-  $('#mU').onclick=()=>{open(`<h2>更新内容</h2><div class="log">${CHANGES.map(c=>`<p><b>${c[0]}</b> <span class="small">${c[1]}</span></p><ul>${c[2].map(x=>`<li>${x}</li>`).join('')}</ul>`).join('')}</div><button class="btn" id="uB">もどる</button>`);$('#uB').onclick=showMenu};
+  open(`<h2>メニュー</h2><div class="tgrid c2">
+    <button class="tile" id="mH">${SVG.help}遊び方</button><button class="tile" id="mS">${SVG.set}設定</button><button class="tile" id="mT">${SVG.title}タイトルへ</button>
+    <button class="tile" id="mG">${SVG.gal}図鑑</button></div>
+    <button class="btn danger" id="mQ" style="margin-top:18px">あきらめる</button>
+    <button class="btn" id="mC">✕ 閉じる</button>`);
+  $('#mH').onclick=()=>showHelp(showMenu);$('#mS').onclick=()=>showSettings(showMenu);
+  $('#mT').onclick=()=>showTitle();$('#mG').onclick=()=>showGallery(showMenu);$('#mC').onclick=close;
+  $('#mQ').onclick=()=>{open(`<h2>あきらめる?</h2><p>このゲームはここで終わりになります</p><div class="row"><button class="btn" id="qN">続ける</button><button class="btn danger" id="qY">あきらめる</button></div>`);
+    $('#qN').onclick=showMenu;$('#qY').onclick=()=>{close();gameOver('giveup')}};
+}
+/* 設定: KROPKIと同じ並び(音 → 記録の送信 → 更新内容 → ホーム画面に追加 → 消去) */
+function showSettings(back){
+  const seg=(id,opts,cur)=>`<div class="seg" id="${id}">${opts.map((t,i)=>`<button data-v="${i}" class="${cur===i?'on':''}">${t}</button>`).join('')}</div>`;
+  open(`<h2>設定</h2><div class="set">
+    <div class="srow"><span>BGM</span>${seg('sB',['OFF','小','中','大'],SET.bgm||0)}</div>
+    <div class="srow"><span>効果音</span>${seg('sS',['OFF','ON'],SET.sound?1:0)}</div>
+    <div class="srow"><span>振動</span>${seg('sV',['OFF','ON'],SET.vib?1:0)}</div>
+    ${canShare()?`<div class="srow"><span>プレイ記録を送る<small><button class="lk" id="sI">送信内容について ›</button></small></span>${seg('sR',['OFF','ON'],shareOn()?1:0)}</div>`:''}
+    <button class="rowBtn" id="sU"><span>📋 更新内容${verUnseen()?'<span class="newb">NEW</span>':''}</span><span class="rs">v${VER} ›</span></button>
+    ${canInstall()&&!isApp()?'<button class="rowBtn" id="sA"><span>📲 ホーム画面に追加</span><span class="rs">›</span></button>':''}
+    <div class="srow"><span>記録のリセット</span><button class="dbtn" id="sX">リセット</button></div>
+    <div class="srow" style="border:0"><span>すべて初期化</span><button class="dbtn" id="sW">初期化</button></div>
+  </div><button class="btn" id="sC">${back?'戻る':'閉じる'}</button>`);
+  const again=()=>showSettings(back);
+  document.querySelectorAll('#sB button').forEach(b=>b.onclick=()=>{ac();SET.bgm=+b.dataset.v;store('lapis_set',SET);bgmApply();again()});
+  document.querySelectorAll('#sS button').forEach(b=>b.onclick=()=>{SET.sound=b.dataset.v==='1';store('lapis_set',SET);again()});
+  document.querySelectorAll('#sV button').forEach(b=>b.onclick=()=>{SET.vib=b.dataset.v==='1';store('lapis_set',SET);if(SET.vib)vib(30);again()});
+  if(canShare()){
+    document.querySelectorAll('#sR button').forEach(b=>b.onclick=()=>{
+      if(b.dataset.v==='1'&&ST.consent!==1){openConsent(again);return}
+      SET.share=+b.dataset.v;store('lapis_set',SET);try{localStorage.setItem('tkcy3_share',String(SET.share))}catch(e){}again();
+    });
+    $('#sI').onclick=()=>openConsent(again);
+  }
+  $('#sU').onclick=()=>showChangelog(again);
+  if($('#sA'))$('#sA').onclick=()=>showAddHome(again);
+  $('#sX').onclick=()=>{open(`<h2>記録のリセット</h2><p>ベスト・図鑑・プレイ回数と、途中のゲームを消しますか?<br><span class="small">(設定はそのまま)</span></p><div class="row"><button class="btn" id="xN">やめる</button><button class="btn danger" id="xY">消す</button></div>`);
+    $('#xN').onclick=again;$('#xY').onclick=()=>{ST.best=0;ST.bestT=0;ST.games=0;ST.found=[];store('lapis_st',ST);S=null;try{localStorage.removeItem('lapis_s')}catch(e){}disp={};refreshTitle();again()}};
+  $('#sW').onclick=()=>{open(`<h2>すべて初期化</h2><p>記録も設定も、すべて最初の状態に戻しますか?</p><div class="row"><button class="btn" id="wN">やめる</button><button class="btn danger" id="wY">初期化</button></div>`);
+    $('#wN').onclick=again;$('#wY').onclick=()=>{try{['lapis_s','lapis_st','lapis_set'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}};
+  $('#sC').onclick=back||close;
+}
+/* 更新内容: 同じ日の更新はまとめて、新しい順に(KROPKIと同じ見せ方) */
+function verUnseen(){
+  if(ST.seenVer===VER)return false;
+  if(!ST.seenVer&&!ST.games&&!S){ST.seenVer=VER;store('lapis_st',ST);return false}
+  return true;
+}
+function showChangelog(back){
+  const days=[];CHANGES.forEach(c=>{let g=days.find(x=>x.d===c[1]);if(!g){g={d:c[1],items:[]};days.push(g)}g.items=g.items.concat(c[2])});
+  open(`<h2>📋 更新内容</h2><p><span class="chip">v${VER}</span></p><div class="log">${days.map(g=>`<p><b>${g.d}</b></p><ul>${g.items.map(x=>`<li>${x}</li>`).join('')}</ul>`).join('')}</div><button class="btn" id="uB">戻る</button>`);
+  ST.seenVer=VER;store('lapis_st',ST);refreshTitle();
+  $('#uB').onclick=back||close;
+}
+/* 遊び方: 文章ではなく図で */
+function showHelp(back,inTut){
+  const rows=[
+    [[1,'p',1,'→',2],'彗星＋を、同じ数のあいだに置くと合体'],
+    [[2,1,'p',1,2,'→',4],'両どなりがそろっていると、連鎖する'],
+    [['m','→',3],'ワームホール－は、星を1つ吸い込む。まん中をタップすると彗星に'],
+    [['d'],'暗黒彗星は、どんな2つでも合体'],
+    [['gauge'],'外側の線がいっぱいになったら、おしまい'],
+    [['eye'],'押したままにすると、置いた結果が先に見える'],
+    [['perk'],'大きな星ができると、加護を1つ選べる'],
+    [['undo'],'右下のボタンで、1手戻せる']
+  ];
+  const pic=x=>x==='→'?'<i>→</i>':x==='eye'?SVG.eye:x==='undo'?SVG.undo:x==='perk'?icon('plus'):`<canvas data-p="${x}"></canvas>`;
+  open(`<h2>遊び方</h2>${rows.map(r=>`<div class="hrow"><div class="pics${r[0].length>5?' sm':''}">${r[0].map(pic).join('')}</div><p>${r[1]}</p></div>`).join('')}
+    ${inTut?'':'<button class="btn pri" id="hT">▶ チュートリアルで体験する</button>'}<button class="btn" id="hB">${back?'戻る':'閉じる'}</button>`);
+  document.querySelectorAll('.pics canvas').forEach(el=>{
+    const k=el.dataset.p,px=30;
+    if(k==='gauge'){const d=Math.min(window.devicePixelRatio||1,3);el.width=el.height=px*d;const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);c.lineCap='round';c.lineWidth=2.5;c.strokeStyle='rgba(255,255,255,.12)';c.beginPath();c.arc(15,15,12,0,TAU);c.stroke();c.strokeStyle='#d9705f';c.beginPath();c.arc(15,15,12,-Math.PI/2,Math.PI*1.25);c.stroke();return}
+    paintMini(el,k==='p'||k==='m'||k==='d'?{t:k}:{t:'n',v:+k},px);
+  });
+  if($('#hT'))$('#hT').onclick=()=>{close();hideTitle();startTut(S&&!S.over?S:null)};
+  $('#hB').onclick=back||close;
+}
+
+/* ---------- タイトル画面 ---------- */
+function hasCont(){return!!(S&&!S.over&&!tut&&S.moves>0)}
+function refreshTitle(){
+  $('#tCont').classList.toggle('hidden',!hasCont());
+  $('#tNew').classList.toggle('pri',!hasCont());
+  const b=$('#ver'),nw=verUnseen();b.textContent='v'+VER+(nw?' ・ 更新内容を見る':'');b.classList.toggle('new',nw);
+  $('#tBest').innerHTML=ST.bestT?`<canvas id="tBestC"></canvas><span>いちばん大きい星 <b>${bodyName(ST.bestT)}</b> ・ BEST <b>${ST.best}</b></span>`:'';
+  if(ST.bestT)paintMini($('#tBestC'),{t:'n',v:ST.bestT},36);
+  $('#a2hChip').classList.toggle('hidden',!canInstall()||isApp()||!!ST.a2h||ST.games<1);
+}
+function showTitle(){
+  close();if(S&&!tut)save();
+  onTitle=true;document.body.classList.add('onTitle');$('#title').classList.add('on');
+  refreshTitle();
+}
+function hideTitle(){onTitle=false;document.body.classList.remove('onTitle');$('#title').classList.remove('on');resize()}
+/* タイトルの絵: 青い星(ラピス)のまわりを、色とりどりの星がゆっくり回る */
+let tcSize=0;
+function drawTitle(t){
+  const el=$('#tCv'),w=el.clientWidth;if(!w)return;
+  const d=Math.min(window.devicePixelRatio||1,3);
+  if(tcSize!==w){tcSize=w;el.width=el.height=Math.round(w*d)}
+  const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,w,w);
+  NOW=t;const cx=w/2,cy=w/2,R=w*.38,rot=RM?0:t/30000;
+  c.lineWidth=1;c.strokeStyle='rgba(160,175,230,.12)';c.beginPath();c.arc(cx,cy,R,0,TAU);c.stroke();
+  drawBody(c,cx,cy,w*.15,6,t,{id:4},true);
+  [1,2,3,4,5,7,8,9,10].forEach((v,i)=>{const a=rot+i*TAU/9-Math.PI/2;drawBody(c,cx+Math.cos(a)*R,cy+Math.sin(a)*R,w*.055,v,t,{id:i+10},true)});
+}
+$('#tCont').onclick=()=>{hideTitle();refresh();if(S&&S.pend)showPerks()};
+$('#tNew').onclick=()=>{
+  const go=()=>{close();hideTitle();if(!ST.tut){S=null;startTut(null)}else newGame()};
+  if(hasCont()){open(`<h2>新しく始める</h2><p>途中のゲームは終わりになります</p><div class="row"><button class="btn" id="nN">やめる</button><button class="btn pri" id="nY">始める</button></div>`);
+    $('#nN').onclick=close;$('#nY').onclick=()=>{sendLog('quit');go()};}
+  else go();
+};
+$('#tGal').onclick=()=>showGallery(close);
+$('#tSet').onclick=()=>showSettings(null);
+$('#tHelp').onclick=()=>showHelp(null);
+$('#ver').onclick=()=>showChangelog(null);
+if(/github\.io$/.test(location.hostname))$('#tPortal').classList.remove('hidden');
+
+/* ---------- ホーム画面に追加(KROPKI・Dungeon Chainと同じ) ---------- */
+let A2H=null,INSTALLED=false;
+function canInstall(){return/github\.io$/.test(location.hostname)||location.protocol==='https:'&&!/claude|anthropic|claudeusercontent/.test(location.hostname)}
+function isIos(){return/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+function instSteps(){return isIos()?'<div class="a2h"><b>⬆️ 共有</b><i>›</i><b>➕ ホーム画面に追加</b></div><p class="a2note">Safariの下の ⬆️ から</p>':'<div class="a2h"><b>⋮</b><i>›</i><b>📲 ホーム画面に追加</b></div><p class="a2note">Chromeの右上 ⋮ から</p>'}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();A2H=e});
+addEventListener('appinstalled',()=>{A2H=null;ST.a2h=1;store('lapis_st',ST);instDone();refreshTitle()});
+try{navigator.getInstalledRelatedApps&&navigator.getInstalledRelatedApps().then(a=>{INSTALLED=a.length>0}).catch(()=>{})}catch(e){}
+function instDone(){if($('#instOv').classList.contains('hidden'))return;$('#instGo').classList.add('hidden');$('#instSteps').innerHTML='<div class="a2h"><b>✅ 追加しました</b></div><p class="a2note">ホーム画面の LAPIS のアイコンから開いてください</p>';$('#instSkip').textContent='このままブラウザで遊ぶ'}
+function instShow(){
+  if(!canInstall()||isApp())return false;
+  try{if(sessionStorage.getItem('tkcy3_portal'))return false}catch(e){}   // ゲーム一覧から来たときは、一覧の側で案内している
+  $('#instOv').classList.remove('hidden');return true;
+}
+$('#instGo').onclick=()=>{
+  ST.a2h=1;store('lapis_st',ST);
+  if(A2H){const e=A2H;A2H=null;e.prompt();e.userChoice.then(r=>{if(r&&r.outcome==='accepted')instDone();else $('#instSteps').innerHTML=instSteps()}).catch(()=>{});return}
+  $('#instSteps').innerHTML=INSTALLED?'<div class="a2h"><b>✅ もう入っています</b></div><p class="a2note">ホーム画面かアプリ一覧の LAPIS から開いてください</p>':instSteps();
+};
+$('#instSkip').onclick=()=>{$('#instOv').classList.add('hidden');bootNext()};
+function showAddHome(back){
+  ST.a2h=1;store('lapis_st',ST);refreshTitle();
+  if(A2H){const e=A2H;A2H=null;close();e.prompt();e.userChoice.then(()=>refreshTitle()).catch(()=>{});return}
+  open(`<h2>📲 ホーム画面に追加</h2>${INSTALLED?'<div class="a2h"><b>✅ もう入っています</b></div>':instSteps()}<button class="btn" id="aB">${back?'戻る':'閉じる'}</button>`);
+  $('#aB').onclick=back||close;
+}
+$('#a2hGo').onclick=()=>showAddHome(null);
+$('#a2hX').onclick=()=>{ST.a2h=1;store('lapis_st',ST);refreshTitle()};
+/* 起動の流れ: (ホーム画面に追加の案内) → 記録送信の同意 → 初めてならチュートリアル */
+function bootNext(){
+  const go=()=>{if(!ST.tut){hideTitle();startTut(S&&!S.over?S:null)}};
+  if(canShare()&&ST.consent===undefined)openConsent(go);else go();
 }
 
 /* ---------- プレイ記録の送信(同意したときだけ。あそびば・ほかのゲームと同意を共有) ---------- */
@@ -709,7 +937,7 @@ function showGallery(back){
     if(ST.found.includes(v)||v<=3)paintMini(el,{t:'n',v},px);
     else{const d=Math.min(window.devicePixelRatio||1,3);el.width=el.height=px*d;const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);c.fillStyle='rgba(255,255,255,.07)';c.beginPath();c.arc(px/2,px/2,px*.34,0,TAU);c.fill();c.fillStyle='rgba(255,255,255,.3)';c.font=`800 ${px*.3}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('?',px/2,px/2)}
   });
-  $('#gB').onclick=back;
+  $('#gB').onclick=back||close;
 }
 
 /* ---------- 画面の更新 ---------- */
@@ -767,7 +995,7 @@ function tutEnd(){
   tut=null;ST.tut=true;store('lapis_st',ST);
   open(`<h2>準備OK</h2><canvas id="bigc"></canvas><p>外側のゲージがいっぱいになると終わり。<br>宇宙のチリから銀河まで、どこまで育てられるかな</p><button class="btn pri" id="goB">はじめる</button>`);
   paintMini($('#bigc'),{t:'n',v:18},120);
-  $('#goB').onclick=()=>{close();if(saved&&!saved.over){S=saved;disp={};syncDisp();refresh()}else newGame();saved=null};
+  $('#goB').onclick=()=>{close();hideTitle();if(saved&&!saved.over){S=saved;disp={};syncDisp();refresh()}else newGame();saved=null};
 }
 
 /* ---------- サイズ・起動 ---------- */
@@ -797,10 +1025,10 @@ ST=Object.assign(ST,load('lapis_st',{}));SET=Object.assign(SET,load('lapis_set',
 const sv=load('lapis_s',null);
 resize();
 csAdopt();
-if(!ST.tut){const go=()=>startTut(sv&&sv.ring&&!sv.over?sv:null);S=blank();if(canShare()&&ST.consent===undefined)openConsent(go);else go()}
-else if(sv&&Array.isArray(sv.ring)){S=Object.assign(blank(),sv);syncDisp();refresh();if(S.over)showOver();else if(S.pend)showPerks()}
-else newGame();
-if(document.fonts&&document.fonts.load)document.fonts.load(`800 20px 'M PLUS Rounded 1c'`).then(()=>refresh()).catch(()=>{});
+if(sv&&Array.isArray(sv.ring)&&!sv.over){S=Object.assign(blank(),sv);syncDisp()}
+showTitle();
+if(!instShow())bootNext();
+if(document.fonts&&document.fonts.load)document.fonts.load(`800 20px 'M PLUS Rounded 1c'`).then(()=>{refresh();if(onTitle)refreshTitle()}).catch(()=>{});
 requestAnimationFrame(frame);
 window.__L=()=>({S,size,busy,tut,simulate,AU,ST,SET,ROT});
 }
