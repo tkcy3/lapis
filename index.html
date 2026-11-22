@@ -21,7 +21,7 @@
 *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
 body{background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--ink);font:16px/1.5 var(--f);overflow:hidden;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
-#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#sky,#fly{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 #app{position:fixed;z-index:1;top:0;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;max-width:560px;margin:0 auto}
 header{width:100%;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 12px 0}
 #maxc{width:44px;height:44px}
@@ -150,7 +150,7 @@ body.onTitle #app{visibility:hidden}
 </style>
 </head>
 <body>
-<canvas id="sky"></canvas>
+<canvas id="sky"></canvas><canvas id="fly"></canvas>
 <div id="app">
   <header>
     <canvas id="maxc" aria-label="いちばん大きい星"></canvas>
@@ -198,8 +198,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.5.0';
+const VER='0.5.1';
 const CHANGES=[
+  ['0.5.1','2026-11-23',['🪐 星たちの公転をさらにゆっくり(約3分で1周)にしました','🌠 背景の空を、たまに流れ星が流れます。ときどき人工衛星も。ごくまれに、何かが通りすぎるかも']],
   ['0.5.0','2026-11-23',['🎵 BGMを、遠いパッドとやわらかいエレピのチルな曲にしました','🪐 星を少し小さくして、宇宙の余白と軌道が見えるようにしました。星たちは約1分半で中心を1周します','🥂 合体の音を、グラスを軽く当てたような澄んだ音に。連鎖すると流れている曲の和音で上がっていきます','✨ 連鎖すると軌道を光が走ります。置いたときは軌道に小さな波紋。大きな連鎖は一瞬ためてから弾けます','🌌 銀河(18)を超えると宇宙が膨張し、彗星が少しずつ減ってチリが増えます。20番台がいつまでも続かないようにしました']],
   ['0.4.2','2026-11-23',['☄ 彗星やワームホールはそのままに、200手を過ぎると「宇宙のチリ」が少しずつ降り積もるようにしました。だんだん輪が埋まり、ひと宇宙に終わりが来ます','📖 節目の星(岩の惑星・若い星・巨星・ブラックホール・銀河)に届くと、章が進みます']],
   ['0.4.1','2026-11-23',['🌌 ゲームオーバーの演出を「重力崩壊」にしました。星が中心へ吸い込まれ、光ってから、育てた宇宙をふり返ります','✨ 結果画面に、その回ではじめて見つけた星が並ぶようにしました']],
@@ -457,7 +458,7 @@ function draw(t){
   const n=S.ring.length,{cx,cy,R,pr,cr}=geo();
   NOW=t;const dt=lastT?Math.min(100,t-lastT):0;lastT=t;
   const cp=COL?Math.min(1,(t-COL)/((RM0||RM_FORCE)?600:COL_MS)):0,cin=cp*cp*cp;   // 重力崩壊: 回転が速くなり、星が中心へ吸い込まれる
-  if(!pdown&&!RM_FORCE)ROT=(ROT+dt*TAU/90000*(1+60*cp*cp))%TAU;   // ふだんは約1分半で1周(ゆっくりなので動きを減らす設定でも回す)、押している間は止める
+  if(!pdown&&!RM_FORCE)ROT=(ROT+dt*TAU/180000*(1+60*cp*cp))%TAU;   // ふだんは約3分で1周(ゆっくりなので動きを減らす設定でも回す)、押している間は止める
   const P=(a,rr)=>({x:cx+Math.cos(a+ROT)*rr,y:cy+Math.sin(a+ROT)*rr});
   c.globalAlpha=1-cp;
   // 軌道
@@ -545,7 +546,7 @@ function draw(t){
 let errLogged=false;
 const RM0=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})();
 let RM_FORCE=0;
-function frame(t){requestAnimationFrame(frame);try{if(onTitle)drawTitle(t);else draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
+function frame(t){requestAnimationFrame(frame);try{flyStep()}catch(e){}try{if(onTitle)drawTitle(t);else draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
 function posOf(id){const d=disp[id],{cx,cy,R}=geo();return d?{x:cx+Math.cos(d.a+ROT)*R*d.r,y:cy+Math.sin(d.a+ROT)*R*d.r}:{x:cx,y:cy}}
 function burst(x,y,col,n=10){n=Math.min(n,12);for(let i=0;i<n;i++){const a=Math.random()*TAU,sp=1.4+Math.random()*2.8;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1,s:1.2+Math.random()*2,c:col})}}
 
@@ -1083,6 +1084,40 @@ function tutEnd(){
   $('#goB').onclick=()=>{close();hideTitle();if(saved&&!saved.over){S=saved;disp={};syncDisp();refresh()}else newGame();saved=null};
 }
 
+/* ---------- 背景をたまに横切るもの: 流れ星(30秒〜1分半に1回)、人工衛星(数分に1回)、UFO(とてもまれ) ---------- */
+const FLY={c:null,W:0,H:0,items:[],dirty:false,next:{star:0,sat:0,ufo:0}};
+function flyInit(){const el=$('#fly'),d=Math.min(window.devicePixelRatio||1,2);FLY.W=innerWidth;FLY.H=innerHeight;el.width=FLY.W*d;el.height=FLY.H*d;FLY.c=el.getContext('2d');FLY.c.setTransform(d,0,0,d,0,0);FLY.dirty=true}
+function flySpawn(k){const now=performance.now(),W=FLY.W,H=FLY.H,R=Math.random,dir=R()<.5?1:-1;
+  if(k==='star'){const a=(.18+R()*.25),x=W*(.2+R()*.6),y=H*(.06+R()*.1);FLY.items.push({k,t0:now,dur:800+R()*350,x,y,vx:dir*Math.cos(a),vy:Math.sin(a),len:60+R()*60,dist:170+R()*110})}   // 盤の上の空いた空だけを流れる
+  else if(k==='sat'){const y0=H*(.07+R()*.15),y1=y0+H*(R()-.5)*.08;FLY.items.push({k,t0:now,dur:32000+R()*14000,x0:dir>0?-10:W+10,x1:dir>0?W+10:-10,y0,y1,fl:.3+R()*.4})}
+  else if(k==='ufo'){const y=H*(.1+R()*.08);FLY.items.push({k,t0:now,dur:11000,x0:dir>0?-30:W+30,dir,y,stop:.38+R()*.2})}}
+function flyStep(){
+  const c=FLY.c;if(!c)return;const now=performance.now(),R=Math.random,N=FLY.next;
+  if(!N.star){N.star=now+15000+R()*25000;N.sat=now+90000+R()*120000;N.ufo=now+480000+R()*600000}
+  if(!document.hidden){if(now>N.star){flySpawn('star');N.star=now+30000+R()*60000}
+    if(now>N.sat){flySpawn('sat');N.sat=now+150000+R()*150000}
+    if(now>N.ufo){if(R()<.5)flySpawn('ufo');N.ufo=now+600000+R()*900000}}
+  if(!FLY.items.length&&!FLY.dirty)return;
+  c.clearRect(0,0,FLY.W,FLY.H);FLY.dirty=FLY.items.length>0;
+  FLY.items=FLY.items.filter(o=>{const k=(now-o.t0)/o.dur;if(k>=1)return false;
+    if(o.k==='star'){const e=1-Math.pow(1-k,2),hx=o.x+o.vx*o.dist*e,hy=o.y+o.vy*o.dist*e,al=Math.sin(Math.PI*k)*.85,tl=o.len*(.4+.6*Math.sin(Math.PI*Math.min(1,k*1.4)));
+      const g=c.createLinearGradient(hx,hy,hx-o.vx*tl,hy-o.vy*tl);g.addColorStop(0,`rgba(235,242,255,${al})`);g.addColorStop(1,'rgba(200,215,255,0)');
+      c.strokeStyle=g;c.lineWidth=1.4;c.lineCap='round';c.beginPath();c.moveTo(hx,hy);c.lineTo(hx-o.vx*tl,hy-o.vy*tl);c.stroke();c.fillStyle=`rgba(245,248,255,${al})`;c.beginPath();c.arc(hx,hy,1.3,0,TAU);c.fill()}
+    else if(o.k==='sat'){const x=o.x0+(o.x1-o.x0)*k,y=o.y0+(o.y1-o.y0)*k,fl=Math.exp(-Math.pow((k-o.fl)/.03,2));   // 途中で一度だけ、ふっと明るく光る
+      const al=Math.min(1,k*12,(1-k)*12)*(.45+.5*fl);c.fillStyle=`rgba(232,238,255,${al})`;c.beginPath();c.arc(x,y,1.1+1.4*fl,0,TAU);c.fill();
+      if(fl>.05){const g=c.createRadialGradient(x,y,0,x,y,9);g.addColorStop(0,`rgba(232,238,255,${.35*fl})`);g.addColorStop(1,'rgba(232,238,255,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,9,0,TAU);c.fill()}}
+    else if(o.k==='ufo'){   // ゆっくり来て、少し止まって、すっと去る
+      const W=FLY.W,cxm=W*(o.dir>0?o.stop:1-o.stop);let x,a=1;
+      if(k<.5){const q=k/.5;x=o.x0+(cxm-o.x0)*(1-Math.pow(1-q,2))}else if(k<.68)x=cxm;else{const q=(k-.68)/.32;x=cxm+o.dir*(W+80)*q*q*q;a=1-q*.3}
+      const y=o.y+Math.sin(now/520)*3,al=.55*a*Math.min(1,k*8,(1-k)*8);c.save();c.globalAlpha=al;
+      c.fillStyle='#9fd8cc';c.beginPath();c.ellipse(x,y-3,5,4,0,Math.PI,TAU);c.fill();
+      c.fillStyle='#c9d2f0';c.beginPath();c.ellipse(x,y,13,3.6,0,0,TAU);c.fill();
+      ['#ff8a8a','#ffe08a','#8affc4'].forEach((col,i)=>{c.fillStyle=col;c.globalAlpha=al*(.4+.6*((Math.floor(now/260)+i)%3===0?1:0));c.beginPath();c.arc(x-7+i*7,y+.5,1.3,0,TAU);c.fill()});
+      c.restore()}
+    return true});
+}
+window.__fly=flySpawn;window.__FLY=FLY;
+
 /* ---------- サイズ・起動 ---------- */
 function sky(){
   const el=$('#sky'),d=Math.min(window.devicePixelRatio||1,2),W=innerWidth,H=innerHeight;el.width=W*d;el.height=H*d;const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);
@@ -1091,7 +1126,7 @@ function sky(){
   c.globalAlpha=1;
 }
 function resize(){
-  sky();
+  sky();flyInit();
   dpr=Math.min(window.devicePixelRatio||1,3);
   const W=Math.min(innerWidth,560),H=$('#app').clientHeight||innerHeight;   // the box we really get (fixed to the visible area), not 100vh
   const used=$('header').offsetHeight+tipEl.offsetHeight+$('footer').offsetHeight+12;
