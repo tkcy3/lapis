@@ -704,9 +704,9 @@ function showSettings(back){
   const seg=(id,opts,cur)=>`<div class="seg" id="${id}">${opts.map((t,i)=>`<button data-v="${i}" class="${cur===i?'on':''}">${t}</button>`).join('')}</div>`;
   open(`<h2>設定</h2><div class="set">
     <div class="srow"><span>BGM</span>${seg('sB',['OFF','小','中','大'],SET.bgm||0)}</div>
-    <div class="srow"><span>効果音</span>${seg('sS',['OFF','ON'],SET.sound?1:0)}</div>
-    <div class="srow"><span>振動</span>${seg('sV',['OFF','ON'],SET.vib?1:0)}</div>
-    ${canShare()?`<div class="srow"><span>プレイ記録を送る<small><button class="lk" id="sI">送信内容について ›</button></small></span>${seg('sR',['OFF','ON'],shareOn()?1:0)}</div>`:''}
+    <div class="srow"><span>効果音</span>${seg('sS',['ON','OFF'],SET.sound?0:1)}</div>
+    <div class="srow"><span>振動</span>${seg('sV',['ON','OFF'],SET.vib?0:1)}</div>
+    ${canShare()?`<div class="srow"><span>プレイ記録を送る<small><button class="lk" id="sI">送信内容について ›</button></small></span>${seg('sR',['ON','OFF'],shareOn()?0:1)}</div>`:''}
     <button class="rowBtn" id="sU"><span>📋 更新内容${verUnseen()?'<span class="newb">NEW</span>':''}</span><span class="rs">v${VER} ›</span></button>
     ${canInstall()&&!isApp()?'<button class="rowBtn" id="sA"><span>📲 ホーム画面に追加</span><span class="rs">›</span></button>':''}
     <div class="srow"><span>記録のリセット</span><button class="dbtn" id="sX">リセット</button></div>
@@ -714,12 +714,13 @@ function showSettings(back){
   </div><button class="btn" id="sC">${back?'戻る':'閉じる'}</button>`);
   const again=()=>showSettings(back);
   document.querySelectorAll('#sB button').forEach(b=>b.onclick=()=>{ac();SET.bgm=+b.dataset.v;store('lapis_set',SET);bgmApply();again()});
-  document.querySelectorAll('#sS button').forEach(b=>b.onclick=()=>{SET.sound=b.dataset.v==='1';store('lapis_set',SET);again()});
-  document.querySelectorAll('#sV button').forEach(b=>b.onclick=()=>{SET.vib=b.dataset.v==='1';store('lapis_set',SET);if(SET.vib)vib(30);again()});
+  document.querySelectorAll('#sS button').forEach(b=>b.onclick=()=>{SET.sound=b.dataset.v==='0';store('lapis_set',SET);again()});
+  document.querySelectorAll('#sV button').forEach(b=>b.onclick=()=>{SET.vib=b.dataset.v==='0';store('lapis_set',SET);if(SET.vib)vib(30);again()});
   if(canShare()){
     document.querySelectorAll('#sR button').forEach(b=>b.onclick=()=>{
-      if(b.dataset.v==='1'&&ST.consent!==1){openConsent(again);return}
-      SET.share=+b.dataset.v;store('lapis_set',SET);try{localStorage.setItem('tkcy3_share',String(SET.share))}catch(e){}again();
+      const on=b.dataset.v==='0';
+      if(on&&ST.consent!==1){openConsent(again);return}
+      SET.share=on?1:0;store('lapis_set',SET);try{localStorage.setItem('tkcy3_share',String(SET.share))}catch(e){}again();
     });
     $('#sI').onclick=()=>openConsent(again);
   }
