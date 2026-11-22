@@ -15,7 +15,7 @@
 /* VOICE: 静かな夜空のように落ち着いた、のんびり遊べるパズル
    IDEA: 重力の中心を回る星々。チリが集まって惑星・恒星・銀河へ育つ
    PICTURE: 盤面そのもの。ゆっくり公転する星が軌道に並ぶ
-   COLOUR/TYPE: 深い藍色の宇宙(真っ黒ではなく青みを残す)・フラットな単色・くすんだ星の色 + 珊瑚色の＋ / M PLUS Rounded 1c 太字
+   COLOUR/TYPE: 深い藍色の宇宙(真っ黒ではなく青みを残す)・フラットな単色・色とりどりの星 + 彗星(＋)とワームホール(－) / M PLUS Rounded 1c 太字
    LAYOUT: 上に点数、中央に環、下にNEXT・加護・戻す(片手で届く位置) */
 :root{--bg1:#0f1430;--bg2:#0a0e22;--ink:#e4e8f4;--sub:#8b94bb;--panel:#151b3a;--btn:#222a50;--line:rgba(255,255,255,.08);--acc:#d9705f;--f:'M PLUS Rounded 1c',system-ui,sans-serif}
 *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
@@ -102,8 +102,9 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.3.5';
+const VER='0.3.6';
 const CHANGES=[
+  ['0.3.6','2026-11-23',['☄ ＋は「彗星」、－は「ワームホール」、黒い＋は「暗黒彗星」になりました。惑星とひと目で見分けられます']],
   ['0.3.5','2026-11-23',['🚀 置く場所を選ぶときの白い線を、まん中から打ち出す方向を示す薄い点線にしました']],
   ['0.3.4','2026-11-23',['🛰 衛星の軌道に細い線を引いて、見つけやすくしました。衛星の動きも速くしました']],
   ['0.3.3','2026-11-23',['🎨 星をいろいろな色にしました。宇宙は広いので、実際の惑星より色とりどりです','🌘 縁の光をもっと控えめに、衛星をうっすら光る点にしました']],
@@ -143,12 +144,12 @@ function rnd(){S.rng=(S.rng+0x6D2B79F5)|0;let t=S.rng;t=Math.imul(t^t>>>15,t|1);
 
 /* ---------- 加護 ---------- */
 const PERKS={
-  plus:{n:'流星群',d:'＋が出やすくなる',max:3},
-  minus:{n:'ワームホール',d:'－が出やすくなる',max:3},
+  plus:{n:'流星群',d:'彗星(＋)が出やすくなる',max:3},
+  minus:{n:'時空のほころび',d:'ワームホール(－)が出やすくなる',max:3},
   sight:{n:'望遠鏡',d:'NEXTが1つ増える',max:2},
   room:{n:'広い軌道',d:'置ける数が1つ増える',max:3},
   rewind:{n:'時間のゆがみ',d:'戻すが2回ふえる',max:9},
-  dark:{n:'暗黒物質',d:'何でも合体できる黒い＋が出やすくなる',max:2},
+  dark:{n:'暗黒物質',d:'何でも合体できる暗黒彗星が出やすくなる',max:2},
   lift:{n:'降着',d:'出てくる星がときどき1つ大きくなる',max:2},
   echo:{n:'共鳴軌道',d:'3連鎖以上で、できる星がさらに+1',max:2},
   clean:{n:'太陽風',d:'いちばん小さい星を全部吹き飛ばす(すぐ発動)',max:99}
@@ -157,12 +158,12 @@ function icon(k){
   const o='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">';
   const plusP='<path d="M12 7.5v9M7.5 12h9" stroke="#fff"/>';
   const m={
-    plus:'<circle cx="12" cy="12" r="9.5" fill="#d9705f" stroke="none"/>'+plusP,
-    minus:'<circle cx="12" cy="12" r="9.5" fill="#4f82bd" stroke="none"/><path d="M7.5 12h9" stroke="#fff"/>',
+    plus:'<path d="M9 15 L21 22 L15 9 Z" fill="#ffc2a8" fill-opacity=".45" stroke="none"/><circle cx="9.5" cy="9.5" r="6" fill="#ff9476" stroke="none"/><path d="M9.5 7v5M7 9.5h5" stroke="#fff" stroke-width="1.8"/>',
+    minus:'<circle cx="12" cy="12" r="8" stroke="#5b8fd9" stroke-width="2.6"/><path d="M8.5 12h7" stroke="#fff" stroke-width="2"/>',
     sight:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
     room:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="2.6" fill="currentColor"/>',
     rewind:'<path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/>',
-    dark:'<circle cx="12" cy="12" r="9.5" fill="#1c1830" stroke="#8a7cc9" stroke-width="1.6"/>'+plusP,
+    dark:'<path d="M9 15 L21 22 L15 9 Z" fill="#a58cff" fill-opacity=".45" stroke="none"/><circle cx="9.5" cy="9.5" r="6" fill="#2a2142" stroke="#a58cff" stroke-width="1.4"/><path d="M9.5 7v5M7 9.5h5" stroke="#e3dbff" stroke-width="1.8"/>',
     lift:'<path d="M12 19V5M6 11l6-6 6 6"/>',
     echo:'<circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
     clean:'<path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z" fill="currentColor" stroke="none"/>'
@@ -273,7 +274,7 @@ function corona(c,x,y,r,col,spread,seed,t,a0){
     const ph=t/(2600+i*900)+seed*6.283+i*2.1,off=r*.03,cx2=x+Math.cos(ph)*off,cy2=y+Math.sin(ph*1.3)*off;
     const sp=spread*(1+.12*Math.sin(t/1700+i+seed*9)),g=c.createRadialGradient(cx2,cy2,r*.92,cx2,cy2,r*(1+sp));
     g.addColorStop(0,rgba(col,a0*(.9+.1*Math.sin(t/1300+i))));g.addColorStop(.35,rgba(col,a0*.45));g.addColorStop(1,rgba(col,0));
-    c.fillStyle=g;c.beginPath();c.arc(cx2,cy2,r*(1+sp),0,TAU);c.fill();
+    c.fillStyle=g;c.beginPath();c.arc(cx2,cy2,r*(1+sp),0,TAU);c.arc(cx2,cy2,r*.9,0,TAU,true);c.fill();   // 輪の部分だけ塗る(中は空けておく)
   }
 }
 /* 小さな衛星: 傾いた楕円軌道を回る点。奥側は星の後ろに隠れる */
@@ -295,17 +296,35 @@ function drawBody(c,x,y,r,v,t,o){
   c.fillStyle=dark?'#1b1f3a':'#ffffff';c.fillText(s,x,y+fs*.05);
   c.restore();
 }
-function drawOrb(c,x,y,r,light,dark,sym,rim){
-  corona(c,x,y,r*.9,rim||light,.12,.3,NOW,.28);
-  disc(c,x,y,r*.9,light);
-  c.strokeStyle='#fff';c.lineWidth=r*.2;c.lineCap='round';c.beginPath();
-  c.moveTo(x-r*.4,y);c.lineTo(x+r*.4,y);if(sym==='+'){c.moveTo(x,y-r*.4);c.lineTo(x,y+r*.4)}c.stroke();c.lineCap='butt';
+/* ＋＝彗星: 光る小さな核と、進む向きと反対へ流れる短い尾。黒い＋＝暗黒彗星 */
+const TAIL0=Math.PI*.75;   // 中央など、向きのない場所では左下へ尾を引く
+function drawComet(c,x,y,r,dark,ta,t){
+  ta=ta==null?TAIL0:ta;t=t||0;
+  const core=dark?'#2a2142':'#ff9476',tl=dark?'#a58cff':'#ffc2a8',L=r*(1.55+.08*Math.sin(t/500)),W=r*.42;
+  c.save();c.translate(x,y);c.rotate(ta);
+  const g=c.createLinearGradient(0,0,L,0);g.addColorStop(0,rgba(tl,.5));g.addColorStop(1,rgba(tl,0));
+  c.fillStyle=g;c.beginPath();c.moveTo(0,-W);c.quadraticCurveTo(L*.55,-W*.35,L,0);c.quadraticCurveTo(L*.55,W*.35,0,W);c.closePath();c.fill();
+  c.restore();
+  corona(c,x,y,r*.5,tl,.5,.7,t,dark?.5:.45);
+  disc(c,x,y,r*.5,core);
+  if(dark){c.lineWidth=Math.max(1.2,r*.06);c.strokeStyle=tl;c.stroke()}
+  c.strokeStyle=dark?'#e3dbff':'#ffffff';c.lineWidth=r*.12;c.lineCap='round';c.beginPath();c.moveTo(x-r*.22,y);c.lineTo(x+r*.22,y);c.moveTo(x,y-r*.22);c.lineTo(x,y+r*.22);c.stroke();c.lineCap='butt';
 }
-function drawPiece(c,o,x,y,r){
+/* －＝ワームホール: 中が空洞のリング。縁がゆっくり渦を巻く */
+function drawWorm(c,x,y,r,t){
+  t=t||0;const col='#5b8fd9',lt='#a9c6ff';
+  corona(c,x,y,r*.78,lt,.14,.2,t,.3);
+  c.save();c.lineWidth=r*.15;c.strokeStyle=col;c.beginPath();c.arc(x,y,r*.74,0,TAU);c.stroke();
+  c.lineWidth=Math.max(1,r*.06);c.lineCap='round';
+  for(let i=0;i<3;i++){const a=t/900+i*TAU/3;c.strokeStyle=rgba(lt,.65-i*.12);c.beginPath();c.arc(x,y,r*.5,a,a+1.3);c.stroke()}
+  c.strokeStyle='#ffffff';c.lineWidth=r*.12;c.beginPath();c.moveTo(x-r*.2,y);c.lineTo(x+r*.2,y);c.stroke();
+  c.restore();
+}
+function drawPiece(c,o,x,y,r,ta){
   if(o.t==='n')drawBody(c,x,y,r,o.v,NOW,o);
-  else if(o.t==='p')drawOrb(c,x,y,r,'#d9705f',0,'+');
-  else if(o.t==='d')drawOrb(c,x,y,r,'#1c1830',0,'+','#8a7cc9');
-  else drawOrb(c,x,y,r,'#4f82bd',0,'-');
+  else if(o.t==='p')drawComet(c,x,y,r,false,ta,NOW);
+  else if(o.t==='d')drawComet(c,x,y,r,true,ta,NOW);
+  else drawWorm(c,x,y,r,NOW);
 }
 function paintMini(el,o,px){const d=Math.min(window.devicePixelRatio||1,3);el.width=el.height=Math.round(px*d);const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,px,px);if(o)drawPiece(c,o,px/2,px/2-px*.03,px*.36)}
 
@@ -342,10 +361,10 @@ function draw(t){
     const{x,y}=P(d.a,R*d.r);
     if(gp&&sim&&sim.cons.has(o.id)){c.lineWidth=2;c.strokeStyle=`rgba(255,255,255,${.45+.35*Math.sin(t/110)})`;c.beginPath();c.arc(x,y,pr*1.2,0,TAU);c.stroke()}
     if(hover&&hover.k==='a'&&!busy&&S.ring[hover.i]===o){c.lineWidth=2;c.strokeStyle='#6f9bd0';c.beginPath();c.arc(x,y,pr*1.22,0,TAU);c.stroke()}
-    drawPiece(c,o,x,y,pr*d.s);
+    drawPiece(c,o,x,y,pr*d.s,d.a+ROT-Math.PI/2);
   }
   if(gp){
-    c.globalAlpha=.5;drawPiece(c,S.center,gp.x,gp.y,pr*.85);c.globalAlpha=1;
+    c.globalAlpha=.5;drawPiece(c,S.center,gp.x,gp.y,pr*.85,gp.a+ROT-Math.PI/2);c.globalAlpha=1;
     {const q1=P(gp.a,cr*1.15),q2=P(gp.a,R-pr*.95);c.save();c.setLineDash([2,7]);c.lineDashOffset=-t/45;c.lineCap='round';c.lineWidth=1.6;c.strokeStyle='rgba(215,225,255,.32)';c.beginPath();c.moveTo(q1.x,q1.y);c.lineTo(q2.x,q2.y);c.stroke();c.restore()}  // 打ち出す方向を示す薄い点線
     if(sim&&sim.res){const q=P(gp.a,R-pr*2.6);c.globalAlpha=.9;drawBody(c,q.x,q.y,pr*.8,sim.res,t);c.globalAlpha=1}
   }
@@ -354,7 +373,7 @@ function draw(t){
   ghosts=ghosts.filter(g=>{
     let k=(now-g.t0)/g.dur;if(k>=1)return false;k=1-(1-k)*(1-k);
     const a=g.a0+adiff(g.a1,g.a0)*k,rr=R*(g.r0+(g.r1-g.r0)*k);
-    const q=P(a,rr);c.globalAlpha=1-k*.5;drawPiece(c,g.o,q.x,q.y,pr*(1-k*.45));c.globalAlpha=1;return true;
+    const q=P(a,rr);c.globalAlpha=1-k*.5;drawPiece(c,g.o,q.x,q.y,pr*(1-k*.45),a+ROT-Math.PI/2);c.globalAlpha=1;return true;
   });
   // 中央
   if(S.center&&!busy&&!S.over){
@@ -363,7 +382,7 @@ function draw(t){
       c.setLineDash([6,6]);c.lineWidth=2.5;c.strokeStyle=`rgba(217,112,95,${.6+.4*Math.sin(t/180)})`;c.beginPath();c.arc(cx,cy,cr*1.45,t/900,t/900+TAU);c.stroke();c.setLineDash([]);
     }
     drawPiece(c,S.center,cx,cy,cr*cS);
-    if(S.center.abs&&S.center.t==='n')drawOrb(c,cx+cr*.95,cy-cr*.95,cr*.36,'#d9705f',0,'+');
+    if(S.center.abs&&S.center.t==='n')drawComet(c,cx+cr*1.05,cy-cr*1.05,cr*.42,false,null,t);
     c.font=`500 ${Math.max(13,size*.038)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=fr>=.9?'#e09080':'rgba(170,180,215,.7)';
     c.fillText(n+' / '+S.cap,cx,cy+cr*1.75);
   }
@@ -609,7 +628,7 @@ function openConsent(after){
   <div class="cs">
     <p>より遊びやすいゲームにするため、プレイの記録を作者に送らせてください。集めた記録は<b>ゲームバランスの調整・改善のためだけ</b>に使います。</p>
     <h3>送る内容</h3>
-    <ul><li>ゲームが終わったときの記録(点数・いちばん大きい星・手数・最大連鎖・選んだ加護・戻すと－を使った回数・プレイ時間)</li>
+    <ul><li>ゲームが終わったときの記録(点数・いちばん大きい星・手数・最大連鎖・選んだ加護・戻すとワームホールを使った回数・プレイ時間)</li>
       <li>ゲームのバージョン</li>
       <li>端末ごとにランダムに作られる番号(同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません)</li></ul>
     <h3>送らないもの</h3>
@@ -710,18 +729,18 @@ function refresh(){
   if(tut||Date.now()<tipLock)return;
   const c=S.center;
   if(!c||S.over)setTip('');
-  else if(c.t==='m')setTip('吸い取る星をタップ');
-  else if(c.abs&&c.t==='n')setTip('まん中をタップで＋に変わる');
-  else if(c.t==='d')setTip('黒い＋はどんな2つでも合体');
+  else if(c.t==='m')setTip('吸い込む星をタップ');
+  else if(c.abs&&c.t==='n')setTip('まん中をタップで彗星＋に変わる');
+  else if(c.t==='d')setTip('暗黒彗星はどんな2つでも合体');
   else setTip('');
 }
 
 /* ---------- チュートリアル ---------- */
 const TUT=[
-  {ring:[1,1,2,3],center:{t:'p'},act:{k:'g',i:1},tip:'＋を同じ数のあいだに置こう'},
+  {ring:[1,1,2,3],center:{t:'p'},act:{k:'g',i:1},tip:'彗星＋を同じ数のあいだに置こう'},
   {ring:[3,2,1,1,2,3],center:{t:'p'},act:{k:'g',i:3},tip:'左右がそろうと連鎖する!'},
-  {ring:[2,1,2,4],center:{t:'m'},act:{k:'a',i:1},tip:'－は星を吸い取れる。1をタップ'},
-  {keep:1,act:{k:'c'},tip:'まん中をタップすると＋に変わる'},
+  {ring:[2,1,2,4],center:{t:'m'},act:{k:'a',i:1},tip:'ワームホール－は星を吸い込める。1をタップ'},
+  {keep:1,act:{k:'c'},tip:'まん中をタップすると彗星＋に変わる'},
   {keep:1,act:{k:'g',i:1},tip:'2と2のあいだに置こう'}
 ];
 function startTut(prev){
