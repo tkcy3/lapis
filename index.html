@@ -102,8 +102,9 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.3.7';
+const VER='0.3.8';
 const CHANGES=[
+  ['0.3.8','2026-11-23',['📱 ゲームコレクションの全画面表示に対応しました']],
   ['0.3.7','2026-11-23',['📱 ゲーム一覧から開いたとき、画面の下が隠れることがあったのを直しました（その2）']],
   ['0.3.6','2026-11-23',['☄ ＋は「彗星」、－は「ワームホール」、黒い＋は「暗黒彗星」になりました。惑星とひと目で見分けられます']],
   ['0.3.5','2026-11-23',['🚀 置く場所を選ぶときの白い線を、まん中から打ち出す方向を示す薄い点線にしました']],
@@ -647,7 +648,7 @@ function openConsent(after){
   $('#csNo').onclick=()=>done(false);
 }
 function devId(){if(!ST.dev){ST.dev=Math.random().toString(36).slice(2,10);store('lapis_st',ST)}return ST.dev}
-function isApp(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}}
+function isApp(){try{return matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true}catch(e){return false}}
 function sendLog(ev){
   if(!shareOn()||tut||!S)return;
   try{
