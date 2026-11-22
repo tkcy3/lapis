@@ -102,8 +102,9 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.3.4';
+const VER='0.3.5';
 const CHANGES=[
+  ['0.3.5','2026-11-23',['🚀 置く場所を選ぶときの白い線を、まん中から打ち出す方向を示す薄い点線にしました']],
   ['0.3.4','2026-11-23',['🛰 衛星の軌道に細い線を引いて、見つけやすくしました。衛星の動きも速くしました']],
   ['0.3.3','2026-11-23',['🎨 星をいろいろな色にしました。宇宙は広いので、実際の惑星より色とりどりです','🌘 縁の光をもっと控えめに、衛星をうっすら光る点にしました']],
   ['0.3.2','2026-11-23',['🌘 星を、色だけのまるに変えました。縁には皆既日食のような光が、ふわりとにじみます','🛰 ときどき、小さな衛星を連れた星があらわれます']],
@@ -345,7 +346,7 @@ function draw(t){
   }
   if(gp){
     c.globalAlpha=.5;drawPiece(c,S.center,gp.x,gp.y,pr*.85);c.globalAlpha=1;
-    c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;const q1=P(gp.a,R-pr*1.5),q2=P(gp.a,R+pr*1.5);c.beginPath();c.moveTo(q1.x,q1.y);c.lineTo(q2.x,q2.y);c.stroke();
+    {const q1=P(gp.a,cr*1.15),q2=P(gp.a,R-pr*.95);c.save();c.setLineDash([2,7]);c.lineDashOffset=-t/45;c.lineCap='round';c.lineWidth=1.6;c.strokeStyle='rgba(215,225,255,.32)';c.beginPath();c.moveTo(q1.x,q1.y);c.lineTo(q2.x,q2.y);c.stroke();c.restore()}  // 打ち出す方向を示す薄い点線
     if(sim&&sim.res){const q=P(gp.a,R-pr*2.6);c.globalAlpha=.9;drawBody(c,q.x,q.y,pr*.8,sim.res,t);c.globalAlpha=1}
   }
   // 吸い込まれる星
