@@ -33,7 +33,7 @@ header{width:100%;display:grid;grid-template-columns:56px 1fr 56px;align-items:c
 .ib svg{width:26px;height:26px}
 #tip{min-height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;font-size:17px;font-weight:800;color:#dfe8f1;text-align:center}
 #tip button{border:0;background:rgba(255,255,255,.06);color:var(--sub);font:500 14px var(--f);padding:6px 12px;border-radius:10px}
-#wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
+#wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
 #cv{touch-action:none;display:block}
 footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 14px calc(14px + env(safe-area-inset-bottom))}
 .next{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border-radius:16px;padding:6px 10px}
@@ -88,6 +88,13 @@ body.onTitle #app{visibility:hidden}
 .tHero{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%}
 #tCv{width:min(70vw,290px);height:min(70vw,290px);max-height:38vh;max-width:38vh}
 .tLogo{font-size:46px;font-weight:800;letter-spacing:.14em;line-height:1;margin:6px 0 0 .14em}
+#chap{position:absolute;left:0;right:0;top:9%;text-align:center;pointer-events:none;opacity:0;color:#e9ecf8}
+#chap small{display:block;font:600 13px var(--f);letter-spacing:.35em;color:#d8bd6a;margin-bottom:4px}
+#chap b{font:800 24px var(--f);letter-spacing:.12em}
+#ovr .chl,.ovr .chl{color:#d8bd6a;letter-spacing:.2em}
+#chap.on{animation:chap 3.4s ease forwards}
+@keyframes chap{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){#chap.on{animation-duration:3.4s;transform:none}}
 #ver{margin-top:6px;background:none;border:0;color:var(--sub);font:500 14px var(--f);padding:6px 10px;min-height:36px}
 #ver.new{color:#e0bd6a;font-weight:800}
 .tBest{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:15px;min-height:40px}
@@ -151,7 +158,7 @@ body.onTitle #app{visibility:hidden}
     <button class="ib" id="menuB" aria-label="メニュー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </header>
   <div id="tip"></div>
-  <div id="wrap"><canvas id="cv"></canvas></div>
+  <div id="wrap"><canvas id="cv"></canvas><div id="chap"></div></div>
   <footer>
     <div class="next"><span>NEXT</span><div id="nextl"></div></div>
     <div id="perkl"></div>
@@ -191,8 +198,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.4.1';
+const VER='0.4.2';
 const CHANGES=[
+  ['0.4.2','2026-11-23',['☄ 彗星やワームホールはそのままに、200手を過ぎると「宇宙のチリ」が少しずつ降り積もるようにしました。だんだん輪が埋まり、ひと宇宙に終わりが来ます','📖 節目の星(岩の惑星・若い星・巨星・ブラックホール・銀河)に届くと、章が進みます']],
   ['0.4.1','2026-11-23',['🌌 ゲームオーバーの演出を「重力崩壊」にしました。星が中心へ吸い込まれ、光ってから、育てた宇宙をふり返ります','✨ 結果画面に、その回ではじめて見つけた星が並ぶようにしました']],
   ['0.4.0','2026-11-23',['🏠 タイトル画面ができました。KROPKI・Dungeon Chainと同じく、ここから「‹ 一覧」に戻れます','⚙ 設定を独立した画面にして、ほかのゲームと同じ並びにしました(記録のリセット・すべて初期化も追加)','❓ 図で見る「遊び方」と、ゲーム中のメニュー(遊び方・設定・タイトルへ・図鑑・あきらめる)を追加しました','📲 ブラウザで初めて開いたときは、ホーム画面への追加を案内します']],
   ['0.3.8','2026-11-23',['📱 ゲームコレクションの全画面表示に対応しました']],
@@ -266,8 +274,15 @@ function icon(k){
 }
 
 /* ---------- 状態 ---------- */
-function blank(){return{ring:[],center:null,queue:[],score:0,moves:0,gsp:0,rng:(Date.now()^Math.floor(Math.random()*1e9))|0,perks:{},cap:18,undo:2,hist:[],maxT:3,mile:6,pend:null,over:false,nid:1,chainMax:0,picks:[],undoUsed:0,minusN:0,darkN:0,ms:0,last:0}}
+function blank(){return{ring:[],center:null,queue:[],score:0,moves:0,gsp:0,rng:(Date.now()^Math.floor(Math.random()*1e9))|0,perks:{},cap:18,undo:2,hist:[],maxT:3,mile:6,pend:null,over:false,nid:1,chainMax:0,picks:[],undoUsed:0,minusN:0,darkN:0,ms:0,last:0,chap:0}}
 function plusPiece(){const P=S.perks;const dk=P.dark?P.dark/30:(S.score>=750?1/90:0);return rnd()<dk?{t:'d'}:{t:'p'}}
+const DUST0=200;
+const CHAPS=[[5,'第一章','惑星の誕生'],[10,'第二章','星のめざめ'],[13,'第三章','星の一生'],[17,'第四章','重力の果て'],[18,'終章','銀河']];
+function chapOf(v){let k=0;CHAPS.forEach((c,i)=>{if(v>=c[0])k=i+1});return k}
+function checkChap(){if(tut)return;const k=chapOf(S.maxT);if(S.chap==null){S.chap=k;return}if(k>S.chap){S.chap=k;chapQ=k}}
+let chapQ=0;function flushChap(){if(chapQ&&!S.pend&&!S.over){const k=chapQ;chapQ=0;setTimeout(()=>showChap(k),250)}}
+function banner(h){const e=$('#chap');e.innerHTML=h;e.classList.remove('on');void e.offsetWidth;e.classList.add('on')}
+function showChap(k){const c=CHAPS[k-1];banner(`<small>${c[1]}</small><b>${c[2]}</b>`);sfx('chord');vib([20,60,20])}
 function gen(){
   const P=S.perks;
   S.gsp++;
@@ -280,7 +295,7 @@ function gen(){
   const lows=vals.filter(v=>v<low);
   let v;
   if(lows.length&&rnd()<1/vals.length)v=lows[Math.floor(rnd()*lows.length)];
-  else v=low+Math.floor(rnd()*3);
+  else v=(S.moves>DUST0&&rnd()<Math.min(.25,(S.moves-DUST0)/2000))?1:low+Math.floor(rnd()*3);
   if(P.lift&&rnd()<.15*P.lift)v++;
   return{t:'n',v};
 }
@@ -589,7 +604,7 @@ async function place(i){
   pushHist();busy=true;
   const c=S.center,n=S.ring.length,a=gapAng(i,n);
   const o={id:S.nid++,t:c.t,v:c.v};
-  S.ring.splice(i,0,o);S.center=null;S.moves++;if(o.t==='d')S.darkN=(S.darkN||0)+1;
+  S.ring.splice(i,0,o);S.center=null;S.moves++;if(S.moves===DUST0+1&&!tut)banner('<small style="color:#c9a2b4">ここから</small><b style="font-size:18px">宇宙のチリが 降り積もりはじめた</b>');if(o.t==='d')S.darkN=(S.darkN||0)+1;
   disp[o.id]={a,ta:a,r:.2,s:1};syncDisp();sfx('place');vib(8);
   await sleep(150);
   let first=o;
@@ -598,7 +613,9 @@ async function place(i){
   S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});
   if(S.ring.length>S.cap){busy=false;gameOver();return}
   if(S.ring.length>=S.cap-1)vib(30);
+  checkChap();
   if(S.maxT>=S.mile){S.mile+=4;S.pend=pickPerks()}
+  flushChap();
   S.center=S.queue.shift();S.queue.push(gen());
   if(S.center.t==='m'&&!S.ring.length)S.center={t:'p'};
   cS=.3;busy=false;save();refresh();
@@ -669,7 +686,9 @@ async function applyPerk(k){
     if(S.center&&S.center.t==='m'&&!S.ring.length)S.center={t:'p'};
     busy=false;
   }
+  checkChap();
   if(S.maxT>=S.mile){S.mile+=4;S.pend=pickPerks()}
+  flushChap();
   save();refresh();
   if(S.pend)showPerks();
 }
@@ -687,7 +706,7 @@ function gameOver(ev){
 }
 function showOver(){
   const nf=(S.newFound||[]).slice(0,8),st=(d,ms)=>`style="animation-delay:${(RM0||RM_FORCE)?0:d}ms"`;
-  open(`<div class="ovr"><p class="small rv" ${st(0)}>あなたの宇宙は</p><canvas id="bigc" class="rv" ${st(150)}></canvas>
+  open(`<div class="ovr">${S.chap?`<p class="small rv chl" ${st(0)}>${CHAPS[S.chap-1][1]}　${CHAPS[S.chap-1][2]}</p>`:''}<p class="small rv" ${st(0)}>あなたの宇宙は</p><canvas id="bigc" class="rv" ${st(150)}></canvas>
     <h2 class="rv" ${st(350)}>${bodyName(S.maxT)}</h2><p class="small rv" ${st(450)}>まで育ちました</p>
     <div class="big rv" id="oS" ${st(800)}>0</div><p class="rv" ${st(1500)}>${S.newBest?'<b style="color:#d8bd6a">ベスト更新!</b>':'BEST '+ST.best}</p>
     <p class="small rv" ${st(1600)}>最大 ${S.chainMax} 連鎖 ・ ${S.moves} 手${S.ms>60000?` ・ ${Math.round(S.ms/60000)} 分`:''}</p>
@@ -917,7 +936,7 @@ function isApp(){try{return matchMedia('(display-mode: standalone)').matches||ma
 function sendLog(ev){
   if(!shareOn()||tut||!S)return;
   try{
-    const d={v:VER,id:devId(),ev,score:S.score,top:S.maxT,moves:S.moves,chain:S.chainMax,cap:S.cap,ring:S.ring.length,
+    const d={v:VER,id:devId(),ev,score:S.score,top:S.maxT,moves:S.moves,chain:S.chainMax,chap:S.chap||0,cap:S.cap,ring:S.ring.length,
       picks:(S.picks||[]).join(' '),undo:S.undoUsed||0,minus:S.minusN||0,dark:S.darkN||0,sec:Math.round((S.ms||0)/1000),games:ST.games,app:isApp()?1:0};
     const body=new URLSearchParams();body.append(SHARE_ENTRY,JSON.stringify(d));
     let ok=false;try{ok=navigator.sendBeacon&&navigator.sendBeacon(SHARE_URL,body)}catch(e){}
@@ -1068,7 +1087,7 @@ showTitle();
 if(!instShow())bootNext();
 if(document.fonts&&document.fonts.load)document.fonts.load(`800 20px 'M PLUS Rounded 1c'`).then(()=>{refresh();if(onTitle)refreshTitle()}).catch(()=>{});
 requestAnimationFrame(frame);
-window.__L=()=>({S,size,busy,tut,simulate,AU,ST,SET,ROT});
+window.__L=()=>({S,size,busy,tut,simulate,AU,ST,SET,ROT,gen});
 }
 </script>
 <script>if('serviceWorker' in navigator&&location.protocol==='https:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
