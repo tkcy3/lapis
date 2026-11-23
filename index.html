@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.0';
+const VER='0.7.1';
 const CHANGES=[
+  ['0.7.1','2026-11-23',['🛠 「すべて初期化」をしても、途中のゲームと点数が残ってしまうことがあったのを直しました','🛠 ゲーム中に「記録のリセット」をしたら、タイトルに戻るようにしました']],
   ['0.7.0','2026-11-23',['🏆 実績を49個つくりました(うち10個はシークレット)。タイトルとメニューの「実績」から見られます。これまでの記録で取れていたものは、はじめに自動で付きます']],
   ['0.6.3','2026-11-23',['🧭 背景の星空に方角(N・E・S・W)を入れました。盤のまわりに、上下左右おなじ距離で並びます','✨ 星座の線と名前は、設定でON/OFFできるようにしました(はじめはOFF)']],
   ['0.6.2','2026-11-23',['🌌 背景の夜空が、いま真上を見上げたときに見える本物の星と星座になりました。時間とともにゆっくり回ります(設定で「現在地」の空にもできます)']],
@@ -263,7 +264,8 @@ let disp={},ghosts=[],parts=[],fx=[];
 let busy=false,hover=null,pdown=false,size=300,dpr=1,tut=null,saved=null,cS=1,simKey='',sim=null,tipLock=0;
 
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
-function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let WIPING=false;   // すべて初期化の最中は、何も保存しない
+function store(k,v){if(WIPING)return;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 /* ---------- 乱数(セーブ・戻すで再現できるようシード付き) ---------- */
@@ -879,9 +881,9 @@ function showSettings(back){
   $('#sU').onclick=()=>showChangelog(again);
   if($('#sA'))$('#sA').onclick=()=>showAddHome(again);
   $('#sX').onclick=()=>{open(`<h2>記録のリセット</h2><p>ベスト・図鑑・実績・プレイ回数と、途中のゲームを消しますか?<br><span class="small">(設定はそのまま)</span></p><div class="row"><button class="btn" id="xN">やめる</button><button class="btn danger" id="xY">消す</button></div>`);
-    $('#xN').onclick=again;$('#xY').onclick=()=>{ST.best=0;ST.bestT=0;ST.games=0;ST.found=[];store('lapis_st',ST);ACH={u:{},st:{seeded:1}};achSave();S=null;try{localStorage.removeItem('lapis_s')}catch(e){}disp={};refreshTitle();again()}};
+    $('#xN').onclick=again;$('#xY').onclick=()=>{ST.best=0;ST.bestT=0;ST.games=0;ST.found=[];store('lapis_st',ST);ACH={u:{},st:{seeded:1}};achSave();S=null;try{localStorage.removeItem('lapis_s')}catch(e){}disp={};refreshTitle();if(onTitle)again();else{close();showTitle()}}};   // ゲーム中に消したらタイトルへ
   $('#sW').onclick=()=>{open(`<h2>すべて初期化</h2><p>記録も設定も、すべて最初の状態に戻しますか?</p><div class="row"><button class="btn" id="wN">やめる</button><button class="btn danger" id="wY">初期化</button></div>`);
-    $('#wN').onclick=again;$('#wY').onclick=()=>{try{['lapis_s','lapis_st','lapis_set',LS_ACH].forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}};
+    $('#wN').onclick=again;$('#wY').onclick=()=>{WIPING=true;S=null;tut=null;saved=null;try{['lapis_s','lapis_st','lapis_set',LS_ACH].forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}};   // 読み込み直す瞬間の自動保存で、途中のゲームが書き戻されないように
   $('#sC').onclick=back||close;
 }
 /* 更新内容: 同じ日の更新はまとめて、新しい順に(KROPKIと同じ見せ方) */
