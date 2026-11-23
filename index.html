@@ -42,7 +42,7 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
 #nextl{display:flex;gap:4px}
 #nextl canvas{width:44px;height:44px}
 #keepl{display:flex;gap:4px}#keepl canvas{width:44px;height:44px}.keep{cursor:pointer;transition:opacity .2s,box-shadow .3s}.keep.off{opacity:.42}
-.keep.hint{animation:keepHint 1.2s ease-in-out infinite}@keyframes keepHint{0%,100%{box-shadow:0 0 0 1.5px rgba(255,170,140,.25) inset}50%{box-shadow:0 0 0 2px rgba(255,170,140,.85) inset,0 0 14px rgba(255,140,110,.35)}}
+.keep.hint{animation:keepHint 1.2s ease-in-out infinite}.keep.tut{animation:keepTut 1.1s ease-in-out infinite}@keyframes keepTut{0%,100%{box-shadow:0 0 0 1.5px rgba(216,189,106,.35) inset}50%{box-shadow:0 0 0 2.5px rgba(216,189,106,.95) inset,0 0 16px rgba(216,189,106,.35)}}@keyframes keepHint{0%,100%{box-shadow:0 0 0 1.5px rgba(255,170,140,.25) inset}50%{box-shadow:0 0 0 2px rgba(255,170,140,.85) inset,0 0 14px rgba(255,140,110,.35)}}
 #perkl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .pk{position:relative;width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--ink)}
 .pk svg{width:24px;height:24px}
@@ -202,8 +202,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.6.0';
+const VER='0.6.1';
 const CHANGES=[
+  ['0.6.1','2026-11-23',['📖 チュートリアルにKEEPの使い方を入れました']],
   ['0.6.0','2026-11-23',['📦 「戻す」をやめて「KEEP」にしました。いまの星を1つしまっておけて、もう一度タップで入れかえ(1手に1回)。彗星をしまっておけば、ピンチで使えます','🎒 加護「時間のゆがみ」は「時空のポケット」に。KEEPの枠が2つになります']],
   ['0.5.6','2026-11-23',['🛠 環に彗星が2つ残っていると、満杯近くでも彗星が来なくなっていたのを直しました。少なくとも5手に1回は必ず来ます']],
   ['0.5.5','2026-11-23',['💓 置ける数が「のこり2つ」になると、重力が強まります。画面のふちが赤く脈打ち、星がふるえて中心へ引かれ、曲がこもって心音が聞こえます。のこり1つでさらに強く']],
@@ -565,7 +566,7 @@ function draw(t){
     c.globalAlpha=1;return true;
   });
   // チュートリアルの目印
-  if(tut&&!busy&&TUT[tut.step]){
+  if(tut&&!busy&&TUT[tut.step]&&TUT[tut.step].act.k!=='keep'){
     const a=TUT[tut.step].act,pulse=1+.12*Math.sin(t/160);let x,y,r;
     if(a.k==='c'){x=cx;y=cy;r=cr*1.5}
     else{const an=a.k==='g'?gapAng(a.i,n):ang(a.i,n);({x,y}=P(an,R));r=pr*1.35;
@@ -706,13 +707,15 @@ function bumpScore(){const e=$('#score');e.textContent=S.score;e.classList.add('
 // ---------- KEEP: いまの星を1つしまっておける(1手に1回)。空ならしまって次の星が来る、入っていれば入れかえ ----------
 function holdN(){return 1+Math.min(1,S.perks.rewind||0)}
 function keepSwap(i){
-  if(locked()||tut||!S||S.over||!S.center)return;
+  if(tut&&TUT[tut.step].act.k!=='keep'){sfx('ng');vib(20);return}
+  if(locked()||!S.center)return;
   if(S.kept){sfx('ng');flashTip('KEEPは1手に1回まで');return}
   if(S.center.abs&&S.center.t==='n'){sfx('ng');flashTip('吸い込んだ星は、そのまま置くか彗星に変えてね');return}
   if(!S.hold)S.hold=[];const cur={t:S.center.t,v:S.center.v},h=S.hold[i]||null;
   S.hold[i]=cur;
   if(h)S.center=h;else{S.center=S.queue.shift();S.queue.push(gen())}
-  S.kept=true;S.keepN=(S.keepN||0)+1;cS=.25;sfx('keep');vib(8);save();refresh();
+  S.kept=true;if(!tut)S.keepN=(S.keepN||0)+1;cS=.25;sfx('keep');vib(8);save();refresh();
+  if(tut)tutNext();
 }
 $('#keepB').onclick=e=>{ac();const cv=e.target.closest('canvas');const i=cv?[...$('#keepl').children].indexOf(cv):0;keepSwap(Math.max(0,i))};
 
@@ -1086,7 +1089,7 @@ function refresh(){
   while(kl.children.length<hn)kl.appendChild(document.createElement('canvas'));
   while(kl.children.length>hn)kl.lastChild.remove();
   [...kl.children].forEach((cv,i)=>{const o=S.hold[i];paintMini(cv,o||null,44);if(!o){const c=cv.getContext('2d');c.setLineDash([3,4]);c.lineWidth=1.5;c.strokeStyle='rgba(170,181,216,.45)';c.beginPath();c.arc(22,22-44*.03,44*.3,0,TAU);c.stroke()}});
-  const kb=$('#keepB');kb.classList.toggle('off',!!tut||!!S.over||!!S.kept);
+  const kb=$('#keepB'),tk=!!(tut&&TUT[tut.step]&&TUT[tut.step].act.k==='keep');kb.classList.toggle('off',(!!tut&&!tk)||!!S.over||!!S.kept);kb.classList.toggle('tut',tk&&!busy);
   kb.classList.toggle('hint',!tut&&!S.over&&!S.kept&&S.cap-S.ring.length<=2&&S.hold.some(o=>o&&(o.t==='p'||o.t==='d'))&&!(S.center&&(S.center.t==='p'||S.center.t==='d')));   // ピンチで彗星をしまっているときは光って知らせる
   if(tut||Date.now()<tipLock)return;
   const c=S.center;
@@ -1103,7 +1106,11 @@ const TUT=[
   {ring:[3,2,1,1,2,3],center:{t:'p'},act:{k:'g',i:3},tip:'左右がそろうと連鎖する!'},
   {ring:[2,1,2,4],center:{t:'m'},act:{k:'a',i:1},tip:'ワームホール－は星を吸い込める。1をタップ'},
   {keep:1,act:{k:'c'},tip:'まん中をタップすると彗星＋に変わる'},
-  {keep:1,act:{k:'g',i:1},tip:'2と2のあいだに置こう'}
+  {keep:1,act:{k:'g',i:1},tip:'2と2のあいだに置こう'},
+  {ring:[1,2,4,5],center:{t:'p'},queue:[{t:'n',v:2}],act:{k:'keep'},tip:'合体できる場所がない…そんなときは右下のKEEPにしまえる。KEEPをタップ'},
+  {keep:1,act:{k:'g',i:2},tip:'2を、となりの2にくっつけて置こう'},
+  {keep:1,center:{t:'n',v:3},act:{k:'keep'},tip:'もう一度KEEPをタップすると、しまった彗星＋と入れかわる'},
+  {keep:1,act:{k:'g',i:2},tip:'2と2のあいだに置こう(KEEPは1手に1回まで)'}
 ];
 function startTut(prev){
   saved=prev;tut={step:0};
@@ -1112,7 +1119,9 @@ function startTut(prev){
 }
 function tutSet(){
   const d=TUT[tut.step];
-  if(!d.keep){S.ring=d.ring.map(v=>({id:S.nid++,t:'n',v}));S.center={...d.center};disp={};ghosts=[];syncDisp();cS=.3}
+  if(!d.keep){S.ring=d.ring.map(v=>({id:S.nid++,t:'n',v}));S.center={...d.center};S.hold=[];S.kept=false;disp={};ghosts=[];syncDisp();cS=.3}
+  else if(d.center){S.center={...d.center};cS=.3}
+  if(d.queue)S.queue=d.queue.map(q=>({...q}));
   refresh();setTip(d.tip,true);
 }
 function tutNext(){
