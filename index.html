@@ -95,6 +95,7 @@ body.onTitle #app{visibility:hidden}
 #chap.on{animation:chap 3.4s ease forwards}
 @keyframes chap{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
 @media (prefers-reduced-motion:reduce){#chap.on{animation-duration:3.4s;transform:none}}
+.chg h3{font-size:15px;margin:10px 0 4px;color:#e0bd6a;text-align:left}.chg details{margin:0 0 4px;text-align:left}.chg summary{font-size:14px;color:var(--sub);padding:8px 0;cursor:pointer}
 #ver{margin-top:6px;background:none;border:0;color:var(--sub);font:500 14px var(--f);padding:6px 10px;min-height:36px}
 #ver.new{color:#e0bd6a;font-weight:800}
 .tBest{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:15px;min-height:40px}
@@ -200,7 +201,7 @@ body.onTitle #app{visibility:hidden}
 {
 const VER='0.5.3';
 const CHANGES=[
-  ['0.5.3','2026-11-23',['🪐 星たちの公転を、もっとゆっくり(約6分で1周)にしました']],
+  ['0.5.3','2026-11-23',['🪐 星たちの公転を、もっとゆっくり(約6分で1周)にしました','📋 更新内容の見せ方を、KROPKI・Dungeon Chainとそろえました(最新だけ開いて、前の分は日付ごとにたたむ)']],
   ['0.5.2','2026-11-23',['🎁 加護を見直しました。星を大きくするだけで不利だった「降着」は、次の3つが彗星になる「流れ星」に','🔔 「共鳴軌道」は星の数字を変えず、3連鎖目からの得点が1.5倍(重ねると2倍)になります','⏳ 「時間のゆがみ」は、ゲームオーバーになる瞬間に1度だけ3手前へ戻してくれます','☄ 4連鎖以上のご褒美は、戻す+1から「次のひとつが彗星」に変えました']],
   ['0.5.1','2026-11-23',['🎨 アイコンを新しくしました。青い星のまわりを、色とりどりの星がまわります','🪐 星たちの公転をさらにゆっくり(約3分で1周)にしました','🌠 背景の空を、たまに流れ星が流れます。ときどき人工衛星も。ごくまれに、何かが通りすぎるかも']],
   ['0.5.0','2026-11-23',['🎵 BGMを、遠いパッドとやわらかいエレピのチルな曲にしました','🪐 星を少し小さくして、宇宙の余白と軌道が見えるようにしました。星たちは約1分半で中心を1周します','🥂 合体の音を、グラスを軽く当てたような澄んだ音に。連鎖すると流れている曲の和音で上がっていきます','✨ 連鎖すると軌道を光が走ります。置いたときは軌道に小さな波紋。大きな連鎖は一瞬ためてから弾けます','🌌 銀河(18)を超えると宇宙が膨張し、彗星が少しずつ減ってチリが増えます。20番台がいつまでも続かないようにしました']],
@@ -832,8 +833,10 @@ function verUnseen(){
   return true;
 }
 function showChangelog(back){
-  const days=[];CHANGES.forEach(c=>{let g=days.find(x=>x.d===c[1]);if(!g){g={d:c[1],items:[]};days.push(g)}g.items=g.items.concat(c[2])});
-  open(`<h2>📋 更新内容</h2><p><span class="chip">v${VER}</span></p><div class="log">${days.map(g=>`<p><b>${g.d}</b></p><ul>${g.items.map(x=>`<li>${x}</li>`).join('')}</ul>`).join('')}</div><button class="btn" id="uB">戻る</button>`);
+  // KROPKI・Dungeon Chainと同じ: いちばん新しい更新だけ開いて見せ、それより前は日付ごとにたたむ
+  const top=CHANGES[0],days=[];CHANGES.slice(1).forEach(c=>{let g=days.find(x=>x.d===c[1]);if(!g){g={d:c[1],items:[]};days.push(g)}g.items=g.items.concat(c[2])});
+  const ul=it=>`<ul>${it.map(x=>`<li>${x}</li>`).join('')}</ul>`,dt=d=>d.slice(5).replace('-','/');
+  open(`<h2>📋 更新内容</h2><p><span class="chip">v${VER}</span></p><div class="log chg"><h3>✨ ${dt(top[1])}</h3>${ul(top[2])}${days.map(g=>`<details><summary>${dt(g.d)}</summary>${ul(g.items)}</details>`).join('')}</div><button class="btn" id="uB">戻る</button>`);
   ST.seenVer=VER;store('lapis_st',ST);refreshTitle();
   $('#uB').onclick=back||close;
 }
