@@ -22,6 +22,7 @@
 html,body{height:100%;margin:0}
 body{background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--ink);font:16px/1.5 var(--f);overflow:hidden;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 #sky,#fly{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#warn{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;background:radial-gradient(ellipse 85% 72% at 50% 46%,rgba(0,0,0,0) 44%,rgba(130,22,40,.46) 78%,rgba(180,38,48,.78) 100%)}
 #app{position:fixed;z-index:1;top:0;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;max-width:560px;margin:0 auto}
 header{width:100%;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 12px 0}
 #maxc{width:44px;height:44px}
@@ -151,7 +152,7 @@ body.onTitle #app{visibility:hidden}
 </style>
 </head>
 <body>
-<canvas id="sky"></canvas><canvas id="fly"></canvas>
+<canvas id="sky"></canvas><canvas id="fly"></canvas><div id="warn"></div>
 <div id="app">
   <header>
     <canvas id="maxc" aria-label="いちばん大きい星"></canvas>
@@ -199,8 +200,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.5.4';
+const VER='0.5.5';
 const CHANGES=[
+  ['0.5.5','2026-11-23',['💓 置ける数が「のこり2つ」になると、重力が強まります。画面のふちが赤く脈打ち、星がふるえて中心へ引かれ、曲がこもって心音が聞こえます。のこり1つでさらに強く']],
   ['0.5.4','2026-11-23',['☄ 彗星(＋)の出かたを本家Atomasに近づけました。少なくとも5手に1回はそのままに、それ以外で出る確率を下げました','⏸ 環で出番を待っている彗星が2つ以上あるあいだは、新しい彗星を出さないようにしました(序盤に彗星がたまりすぎない)','🌀 ワームホール(－)は、ほぼ20手ごとに来るようにしました。始まってすぐには来ません','🪐 そのぶん、置ける数を18→19に増やしました(1プレイの長さはほぼ同じ)']],
   ['0.5.3','2026-11-23',['🪐 星たちの公転を、もっとゆっくり(約6分で1周)にしました','📋 更新内容の見せ方を、KROPKI・Dungeon Chainとそろえました(最新だけ開いて、前の分は日付ごとにたたむ)']],
   ['0.5.2','2026-11-23',['🎁 加護を見直しました。星を大きくするだけで不利だった「降着」は、次の3つが彗星になる「流れ星」に','🔔 「共鳴軌道」は星の数字を変えず、3連鎖目からの得点が1.5倍(重ねると2倍)になります','⏳ 「時間のゆがみ」は、ゲームオーバーになる瞬間に1度だけ3手前へ戻してくれます','☄ 4連鎖以上のご褒美は、戻す+1から「次のひとつが彗星」に変えました']],
@@ -447,6 +449,20 @@ function drawPiece(c,o,x,y,r,ta){
 }
 function paintMini(el,o,px){const d=Math.min(window.devicePixelRatio||1,3);el.width=el.height=Math.round(px*d);const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,px,px);if(o)drawPiece(c,o,px/2,px/2-px*.03,px*.36)}
 
+// ---------- 危機: のこり2つで重力が強まり、のこり1つでさらに強く ----------
+let DZ=0;const HB={next:0,beat:0,pulse:0,op:-1};
+function dangerLv(){if(onTitle||!S||S.over||COL||tut)return 0;const rem=S.cap-S.ring.length;return rem<=1?2:rem<=2?1:0}
+function heartbeat(lv){if(!AC||!SET.sound)return;const v=lv===2?1:.7;   // ドクン、ドクン(低い音と、スマホでも聞こえる少し高い音)
+  [[0,1],[.2,.6]].forEach(([w,a])=>{tone(62,.2,'sine',.26*v*a,w,.65);tone(124,.12,'sine',.07*v*a,w,.6)})}
+function bgmMuffle(lv){if(!AC||!AU.warm)return;const f=lv===2?900:lv===1?1700:5200;if(AU.muf!==f){AU.warm.frequency.setTargetAtTime(f,AC.currentTime,.5);AU.muf=f}}   // 危ないときは曲がこもって遠くなる
+function dangerStep(){
+  const lv=dangerLv(),now=performance.now();DZ+=((lv===2?1:lv===1?.55:0)-DZ)*.04;if(DZ<.003)DZ=0;
+  const per=lv===2?1000:1450;
+  if(lv){if(!HB.next)HB.next=now+120;if(now>=HB.next){HB.beat=now;HB.next=now+per;heartbeat(lv)}}else HB.next=0;
+  const ph=HB.beat?(now-HB.beat)/per:9;HB.pulse=lv?Math.max(Math.exp(-ph*8),ph>.2?.7*Math.exp(-(ph-.2)*8):0):0;
+  const op=+(DZ*(.5+.5*HB.pulse)).toFixed(3);if(op!==HB.op){$('#warn').style.opacity=op;HB.op=op}
+  bgmMuffle(lv);
+}
 let orb=[];   // 軌道の光: rip=置いたときの波紋 / run=連鎖で軌道を走る光 / wave=合体点の小さな輪
 function drawOrb(c,cx,cy,R,pr){
   const now=performance.now();c.save();c.lineCap='round';
@@ -469,16 +485,17 @@ function draw(t){
   const P=(a,rr)=>({x:cx+Math.cos(a+ROT)*rr,y:cy+Math.sin(a+ROT)*rr});
   c.globalAlpha=1-cp;
   // 軌道
-  c.lineWidth=1;c.strokeStyle='rgba(160,175,230,.12)';c.beginPath();c.arc(cx,cy,R,0,TAU);c.stroke();
+  c.lineWidth=1+DZ*.6;c.strokeStyle=DZ?`rgba(${160+70*DZ|0},${175-60*DZ|0},${230-120*DZ|0},${.12+.16*DZ*(.6+.4*HB.pulse)})`:'rgba(160,175,230,.12)';c.beginPath();c.arc(cx,cy,R,0,TAU);c.stroke();
   drawOrb(c,cx,cy,R,pr);
   // ゲージ
   const gR=R+pr+size*.04,fr=Math.min(1,n/S.cap);
   c.lineCap='round';c.lineWidth=3;c.strokeStyle='rgba(255,255,255,.06)';c.beginPath();c.arc(cx,cy,gR,0,TAU);c.stroke();
-  let gc='#5f9c93',ga=1;if(fr>=.9){gc='#d9705f';ga=.65+.35*Math.sin(t/140)}else if(fr>=.75)gc='#c99a45';
+  const remG=S.cap-n;let gc='#5f9c93',ga=1;if(remG<=2||fr>=.9){gc='#d9705f';ga=.55+.45*(HB.pulse||.5*(1+Math.sin(t/140)))}else if(remG<=4||fr>=.75)gc='#c99a45';   // のこり2つから赤く、心音に合わせて脈打つ
   if(n&&!COL){c.globalAlpha=ga;c.strokeStyle=gc;c.beginPath();c.arc(cx,cy,gR,-Math.PI/2,-Math.PI/2+TAU*fr);c.stroke();c.globalAlpha=1}
   c.lineCap='butt';
   // 中央の光
   disc(c,cx,cy,cr*1.9,'rgba(255,255,255,.025)');
+  if(DZ&&!COL){const g=c.createRadialGradient(cx,cy,cr*.6,cx,cy,cr*2.6);g.addColorStop(0,`rgba(225,85,75,${.16*DZ*(.55+.45*HB.pulse)})`);g.addColorStop(1,'rgba(225,85,75,0)');c.fillStyle=g;c.beginPath();c.arc(cx,cy,cr*2.6,0,TAU);c.fill()}
   // 予告(押している間)
   let gp=null;
   if(hover&&!busy&&S.center&&!S.over){
@@ -492,7 +509,8 @@ function draw(t){
   for(const o of S.ring){
     let d=disp[o.id];if(!d){syncDisp();d=disp[o.id]}
     d.a+=adiff(d.ta,d.a)*.22;d.r+=(1-d.r)*.25;d.s+=(1-d.s)*.09;
-    const{x,y}=P(d.a+(COL?cin*2.4:0),R*d.r*(1-cin));
+    let{x,y}=P(d.a+(COL?cin*2.4:0),R*d.r*(1-cin)*(1-.035*DZ));
+    if(DZ>.05&&!RM0&&!COL){const j=DZ*1.4;x+=Math.sin(t*.031+o.id*1.7)*j;y+=Math.cos(t*.027+o.id*2.3)*j}
     if(COL){c.globalAlpha=1;drawPiece(c,o,x,y,pr*d.s*(1-cin*.85),d.a+ROT-Math.PI/2);continue}
     if(gp&&sim&&sim.cons.has(o.id)){c.lineWidth=2;c.strokeStyle=`rgba(255,255,255,${.45+.35*Math.sin(t/110)})`;c.beginPath();c.arc(x,y,pr*1.2,0,TAU);c.stroke()}
     if(hover&&hover.k==='a'&&!busy&&S.ring[hover.i]===o){c.lineWidth=2;c.strokeStyle='#6f9bd0';c.beginPath();c.arc(x,y,pr*1.22,0,TAU);c.stroke()}
@@ -527,7 +545,8 @@ function draw(t){
     drawPiece(c,S.center,cx,cy,cr*cS);
     if(S.center.abs&&S.center.t==='n')drawComet(c,cx+cr*1.05,cy-cr*1.05,cr*.42,false,null,t);
     c.font=`500 ${Math.max(13,size*.038)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=fr>=.9?'#e09080':'rgba(170,180,215,.7)';
-    c.fillText(n+' / '+S.cap,cx,cy+cr*1.75);
+    const rem=S.cap-n;if(rem<=2&&!tut){c.font=`700 ${Math.max(14,size*.042)*(1+.06*HB.pulse)}px ${FONT}`;c.fillStyle=rem<=1?'#ff8a7a':'#f0a08e';c.fillText('のこり '+Math.max(0,rem),cx,cy+cr*1.75)}
+    else c.fillText(n+' / '+S.cap,cx,cy+cr*1.75);
   }
   // 粒
   parts=parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=.93;p.vy*=.93;p.l-=.028;if(p.l<=0)return false;c.globalAlpha=p.l;c.fillStyle=p.c;c.beginPath();c.arc(p.x,p.y,p.s*p.l+1,0,TAU);c.fill();c.globalAlpha=1;return true});
@@ -553,7 +572,7 @@ function draw(t){
 let errLogged=false;
 const RM0=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})();
 let RM_FORCE=0;
-function frame(t){requestAnimationFrame(frame);try{flyStep()}catch(e){}try{if(onTitle)drawTitle(t);else draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
+function frame(t){requestAnimationFrame(frame);try{flyStep()}catch(e){}try{dangerStep()}catch(e){}try{if(onTitle)drawTitle(t);else draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
 function posOf(id){const d=disp[id],{cx,cy,R}=geo();return d?{x:cx+Math.cos(d.a+ROT)*R*d.r,y:cy+Math.sin(d.a+ROT)*R*d.r}:{x:cx,y:cy}}
 function burst(x,y,col,n=10){n=Math.min(n,12);for(let i=0;i<n;i++){const a=Math.random()*TAU,sp=1.4+Math.random()*2.8;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1,s:1.2+Math.random()*2,c:col})}}
 
@@ -998,7 +1017,7 @@ const AU={out:null,bus:null,rv:null,playing:false,timer:0,next:0,step:0,loop:0,c
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function auIR(sec,decay){const n=Math.floor(AC.sampleRate*sec),b=AC.createBuffer(2,n,AC.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,decay)}return b}
 function auOut(){if(!AC)return null;if(!AU.out){
-  AU.out=AC.createGain();AU.out.gain.value=BGM_VOL[SET.bgm||0];const warm=AC.createBiquadFilter();warm.type='lowpass';warm.frequency.value=5200;warm.Q.value=.3;AU.out.connect(warm);warm.connect(AC.destination);
+  AU.out=AC.createGain();AU.out.gain.value=BGM_VOL[SET.bgm||0];const warm=AU.warm=AC.createBiquadFilter();warm.type='lowpass';warm.frequency.value=5200;warm.Q.value=.3;AU.out.connect(warm);warm.connect(AC.destination);
   AU.bus=AC.createGain();AU.bus.gain.value=.9;AU.bus.connect(AU.out);
   AU.rv=AC.createConvolver();AU.rv.buffer=auIR(4.5,2.2);const rg=AC.createGain();rg.gain.value=.5;AU.rv.connect(rg);rg.connect(AU.out)}return AU.out}
 function auSend(node,amt){const g=AC.createGain();g.gain.value=amt;node.connect(g);g.connect(AU.rv)}
