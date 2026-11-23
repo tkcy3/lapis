@@ -211,8 +211,10 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.3';
+const VER='0.7.5';
 const CHANGES=[
+  ['0.7.5','2026-11-23',['🌀 重力崩壊も曲に乗せました。拍に合わせて崩れはじめ、曲がゆっくり消えていき、閃光は拍の頭に来ます','📖 チュートリアルの連鎖も、曲のリズムに乗るようにしました']],
+  ['0.7.4','2026-11-23',['🎶 実績のお知らせ・章の見出し・流れ星も、音と同じ拍で出るようにしました','👆 置く・KEEP・吸い込む・彗星に変える音も、曲の細かい拍(32分)にそろえました']],
   ['0.7.3','2026-11-23',['⏱ 連鎖は1段目から曲の8分に乗せ、しめくくりの和音・章・加護・実績・新しい星の音も拍にそろえました','💓 ピンチの心音も曲の拍に合わせました(のこり2つは2拍ごと、のこり1つは1拍ごと)','🎼 合体の音がハモるようにしました。2連鎖で2声、3連鎖で3声。4連鎖からは上のきらめきも拍ぴったりに','🔔 3連鎖以上のしめくくりに、次の拍でいまの和音がシャラーンと鳴ります','🎵 置く音も、流れている曲の和音に合わせました']],
   ['0.7.2','2026-11-23',['🎶 連鎖がBGMのリズムに乗るようにしました。合体の音が曲の拍に合わせて鳴ります','🌙 星が吸い寄せられる動きと、位置に収まる動きを、少しゆったりにしました(置いたときの反応の速さはそのまま)']],
   ['0.7.1','2026-11-23',['🛠 「すべて初期化」をしても、途中のゲームと点数が残ってしまうことがあったのを直しました','🛠 ゲーム中に「記録のリセット」をしたら、タイトルに戻るようにしました']],
@@ -257,7 +259,7 @@ const BODIES=[
   ['ブラックホール','h','#05060c','#f3aa60'],['銀河','s','#3b2f86','#f4dca4']
 ];
 let NOW=0,ROT=0,lastT=0,COL=0;   // COL: 重力崩壊が始まった時刻(ゲームオーバー演出)
-const COL_MS=2300,FLASH_MS=900;
+let COL_MS=2300;const FLASH_MS=900;   // 崩壊の長さは、閃光が拍の頭に来るように毎回決める
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const tipEl=$('#tip');
@@ -312,7 +314,7 @@ function chapOf(v){let k=0;CHAPS.forEach((c,i)=>{if(v>=c[0])k=i+1});return k}
 function checkChap(){if(tut)return;const k=chapOf(S.maxT);if(S.chap==null){S.chap=k;return}if(k>S.chap){S.chap=k;chapQ=k}}
 let chapQ=0;function flushChap(){if(chapQ&&!S.pend&&!S.over){const k=chapQ;chapQ=0;setTimeout(()=>showChap(k),250)}}
 function banner(h){const e=$('#chap');e.innerHTML=h;e.classList.remove('on');void e.offsetWidth;e.classList.add('on')}
-function showChap(k){const c=CHAPS[k-1];banner(`<small>${c[1]}</small><b>${c[2]}</b>`);sfx('chapter');vib([20,60,20])}
+function showChap(k){const c=CHAPS[k-1],d=beatDelay(.05,.5);sfx('chapter');setTimeout(()=>{banner(`<small>${c[1]}</small><b>${c[2]}</b>`);vib([20,60,20])},d*1000)}   // 見出しも次の拍の頭で
 function gen(){
   const P=S.perks;
   if(S.forceP>0){S.forceP--;S.gsp=0;return plusPiece()}   // 加護「流れ星」の残り
@@ -507,7 +509,7 @@ function draw(t){
   if(!S)return;
   const n=S.ring.length,{cx,cy,R,pr,cr}=geo();
   NOW=t;const dt=lastT?Math.min(100,t-lastT):0;lastT=t;
-  const cp=COL?Math.min(1,(t-COL)/((RM0||RM_FORCE)?600:COL_MS)):0,cin=cp*cp*cp;   // 重力崩壊: 回転が速くなり、星が中心へ吸い込まれる
+  const cp=COL?Math.max(0,Math.min(1,(t-COL)/((RM0||RM_FORCE)?600:COL_MS))):0,cin=cp*cp*cp;   // 重力崩壊: 回転が速くなり、星が中心へ吸い込まれる
   if(!pdown&&!RM_FORCE)ROT=(ROT+dt*TAU/360000*(1+60*cp*cp))%TAU;
   if(REW){const k=(t-REW)/900;if(k>=1||k<0)REW=0;else ROT=(ROT-dt*TAU/700*(1-k)*(1-k)+TAU)%TAU}   // 巻き戻るときは、環がすっと逆に回る   // ふだんは約6分で1周(ゆっくりなので動きを減らす設定でも回す)、押している間は止める
   const P=(a,rr)=>({x:cx+Math.cos(a+ROT)*rr,y:cy+Math.sin(a+ROT)*rr});
@@ -608,7 +610,7 @@ function burst(x,y,col,n=10){n=Math.min(n,12);for(let i=0;i<n;i++){const a=Math.
 /* ---------- 音・振動 ---------- */
 let AC=null;
 function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume().catch(()=>{})}
-function tone(f,d,type='sine',vol=.12,when=0,slide=0){if(!AC||!SET.sound)return;vol*=.55;const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(f*slide,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.03)}
+function tone(f,d,type='sine',vol=.12,when=0,slide=0){if(!AC||!SET.sound)return;vol*=.55;if(window.__SL)window.__SL.push(['tone',Math.round(f),AC.currentTime+when]);const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(f*slide,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.03)}
 const SC=[523,587,659,784,880,1047,1175,1319,1568,1760,2093];
 // グラスの音: 少しずれた2つのグラスが触れ合う、澄んだ短い響き(倍音は鐘のように 1 : 2.76 : 5.4)
 // いま流れている和音の音(全オクターブ)。ハモリと、しめくくりの和音に使う
@@ -625,9 +627,10 @@ function clink(m,when=0,vol=.03){if(!AC||!SET.sound)return;const t=AC.currentTim
   [[1,1],[2.76,.32],[5.4,.1]].forEach(([r,a],j)=>[0,6].forEach((ct,k)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f*r;o.detune.value=ct+(k?j*2:0);
     const d=j?.35/j:1.3,t1=t+k*.012;g.gain.setValueAtTime(.0001,t1);g.gain.exponentialRampToValueAtTime(vol*a*(k?.6:1),t1+.003);g.gain.exponentialRampToValueAtTime(.0001,t1+d);o.connect(g).connect(AC.destination);o.start(t1);o.stop(t1+d+.05)}))}
 function chordLadder(){const pcs=[...new Set((AU.ch||[62,66,69,73]).map(m=>m%12))].sort((a,b)=>a-b),out=[];for(let o=72;out.length<9;o+=12)for(const pc of pcs){const m=o+pc;if(m>=79&&out.length<9)out.push(m)}return out}
-function sfx(k,n=1){
+function sfx(k,n=1,w=0){   // w: 鳴らすまでの秒(拍に合わせるとき)
   if(!AC||!SET.sound)return;
-  if(k==='place'){const r=chordTones().find(x=>x>=67)||67;tone(mtof(r),.07,'sine',.07,0,.85)}   // 置く音は、いまの和音の音に
+  const q32=beatDelay(0,4);   // 操作の音は次の32分音符に寄せる(最大0.12秒)。見た目の反応は即座のまま
+  if(k==='place'){const r=chordTones().find(x=>x>=67)||67;tone(mtof(r),.07,'sine',.07,q32,.85)}   // 置く音は、いまの和音の音に
   else if(k==='fuse'){   // 連鎖が進むほど声部がふえてハモる。メロディは和音の音を上っていく
     const L=chordLadder(),m=L[Math.min(n-1,L.length-1)],v=.024+.003*Math.min(n,6);clink(m,0,v);
     if(n>=2){const h=below(m,3);clink(h,.012,v*.55);if(n>=3)clink(below(h,3),.024,v*.42)}
@@ -636,17 +639,17 @@ function sfx(k,n=1){
   else if(k==='resolve'){   // 連鎖のしめくくり: 次の拍の頭で、いまの和音をそっと鳴らす
     const d=beatDelay(.08,.5),top=chordLadder()[Math.min(n,6)],ts=[top,below(top,3),below(below(top,3),3),below(below(below(top,3),3),3)].sort((a,b)=>a-b);
     ts.forEach((m,i)=>shimmer(m,d+i*.035,.013+.002*Math.min(n,6)))}
-  else if(k==='absorb'){const r=chordTones().find(x=>x>=74);tone(mtof(r),.2,'sine',.1,0,.5)}
-  else if(k==='conv'){const r=chordTones().find(x=>x>=67);tone(mtof(r),.14,'sine',.1,0,2)}
+  else if(k==='absorb'){const r=chordTones().find(x=>x>=74);tone(mtof(r),.2,'sine',.1,q32,.5)}
+  else if(k==='conv'){const r=chordTones().find(x=>x>=67);tone(mtof(r),.14,'sine',.1,q32,2)}
   else if(k==='over'){tone(330,.5,'triangle',.12,0,.5);tone(247,.7,'triangle',.1,.25,.5)}
-  else if(k==='collapse'){tone(392,2.3,'sine',.09,0,.18);tone(196,2.3,'triangle',.05,.1,.25)}
-  else if(k==='flash'){tone(90,1.2,'sine',.16,0,.5);tone(1568,.9,'sine',.05,.02,.7)}
-  else if(k==='chord')[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,j*.12));
+  else if(k==='collapse'){const d=COL_MS/1000;tone(392,d,'sine',.09,w,.18);tone(196,d,'triangle',.05,w+.1,.25)}
+  else if(k==='flash'){tone(73.4,1.2,'sine',.16,w,.5);tone(1174.7,.9,'sine',.05,w+.02,.7)}   // 閃光はニ(D)の音
+  else if(k==='chord'){const d=beatDelay(0,.5);[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,d+j*BGM_STEP/2))}   // 結果の和音(ニ長調の主和音)も拍の頭から16分で
   else if(k==='chapter'){const d=beatDelay(.05,.5),ts=chordTones().filter(x=>x>=62&&x<=86);ts.forEach((m,j)=>shimmer(m,d+j*.06,.02))}   // 章: 次の拍の頭で、いまの和音
   else if(k==='perk'){const L=chordLadder(),d=beatDelay(.03,1),g=BGM_STEP/2;[0,1,2,4].forEach((i,j)=>clink(L[i],d+j*g,.022))}   // 加護: 和音の音を16分で上る
   else if(k==='undo')tone(760,.16,'sine',.08,0,.6);
-  else if(k==='ach'){const L=chordLadder(),d=beatDelay(.03,1),g=BGM_STEP/2;clink(L[2],d,.03);clink(L[4],d+g,.026);clink(L[6]||L[5],d+2*g,.022)}
-  else if(k==='keep'){const t=chordTones().filter(x=>x>=76);tone(mtof(t[0]),.06,'sine',.06,0,1.06);tone(mtof(t[2]),.08,'sine',.035,.05,1)}
+  else if(k==='ach'){const L=chordLadder(),d=beatDelay(.03,1)+(synced()?0:.05),g=BGM_STEP/2;clink(L[2],d,.03);clink(L[4],d+g,.026);clink(L[6]||L[5],d+2*g,.022)}
+  else if(k==='keep'){const t=chordTones().filter(x=>x>=76),g=BGM_STEP/4;tone(mtof(t[0]),.06,'sine',.06,q32,1.06);tone(mtof(t[2]),.08,'sine',.035,q32+(synced()?g:.05),1)}
   else if(k==='ng')tone(200,.1,'sine',.06);
   else if(k==='new'){const L=chordLadder(),d=beatDelay(.1,2),g=BGM_STEP/2;[3,5,7].forEach((i,j)=>clink(L[Math.min(i,L.length-1)]+12,d+j*g,.014))}   // 新しい星: 高いところで小さくきらめく
 }
@@ -720,7 +723,7 @@ async function place(i){
   if(S.pend)showPerks();
 }
 // 連鎖をBGMのリズムに乗せる: 合体の瞬間を曲の8分の区切りに合わせて待つ。曲が鳴っていなければ決まった時間だけ待つ
-function beatWait(minMs,div){if(!synced()||tut)return sleep(minMs+60);return sleep(beatDelay(minMs/1000,div)*1000)}
+function beatWait(minMs,div){if(!synced())return sleep(minMs+60);return sleep(beatDelay(minMs/1000,div)*1000)}
 async function react(p){
   let last=null;const pl=S.ring[p],pa=disp[pl.id]?disp[pl.id].a:0;
   for(const ev of fuseGen(S.ring,p,S.perks,()=>S.nid++)){
@@ -783,7 +786,7 @@ async function applyPerk(k){
   S.perks[k]=(S.perks[k]||0)+1;S.pend=null;(S.picks=S.picks||[]).push(k+'@'+(S.mile-4));
   if(k==='room')S.cap++;
   if(k==='shower'){let left=3;S.queue=S.queue.map(q=>{if(left<=0)return q;left--;return q.t==='p'||q.t==='d'?q:{t:'p'}});S.forceP=(S.forceP||0)+left;
-    fx.push({txt:'流れ星',t0:performance.now(),dur:1300,dy:.16,s:.045,col:'#ffd9a0'});try{[0,350,800].forEach(d=>setTimeout(()=>flySpawn('star'),d))}catch(e){}}
+    fx.push({txt:'流れ星',t0:performance.now(),dur:1300,dy:.16,s:.045,col:'#ffd9a0'});try{const d0=beatDelay(.02,1),g=synced()?BGM_STEP*2:.4;[0,1,2].forEach(i=>setTimeout(()=>flySpawn('star'),(d0+i*g)*1000))}catch(e){}/* 1拍ごとに流れる */}
   if(k==='sight')S.queue.push(gen());
   if(k==='clean'){
     busy=true;
@@ -813,10 +816,12 @@ function gameOver(ev){
   ST.games++;ST.best=Math.max(ST.best,S.score);ST.bestT=Math.max(ST.bestT,S.maxT);store('lapis_st',ST);
   achScan();achGive('g1');if(ST.games>=10)achGive('g10x');if(ST.games>=50)achGive('g50x');if(ev==='giveup')achGive('fold');else if(S.moves<60&&ev!=='quit')achGive('crunch');
   S.newBest=nb;sendLog(ev||'over');save();refresh();
-  hover=null;COL=Object.assign(new Number(performance.now()),{burst:0});   // 重力崩壊の演出
-  bgmFade(0,.7);sfx('collapse');vib(20);
-  setTimeout(()=>{sfx('flash');vib([40,40,90])},(RM0||RM_FORCE)?600:COL_MS);
-  setTimeout(()=>{COL=0;showOver()},((RM0||RM_FORCE)?600:COL_MS)+FLASH_MS+500);
+  // 重力崩壊も曲に乗せる: 次の8分で崩れはじめ、曲はその間にゆっくり消え、閃光は拍の頭(2秒以上あと)に来る
+  const rm=RM0||RM_FORCE,d0=rm?0:beatDelay(0,1);COL_MS=rm?600:(synced()?Math.round((beatDelay(d0+2.1,.5)-d0)*1000):2300);
+  hover=null;COL=Object.assign(new Number(performance.now()+d0*1000),{burst:0});
+  bgmFade(0,rm?.7:d0+COL_MS/1000);sfx('collapse',1,d0);setTimeout(()=>vib(20),d0*1000);
+  sfx('flash',1,d0+COL_MS/1000);setTimeout(()=>vib([40,40,90]),d0*1000+COL_MS);
+  setTimeout(()=>{COL=0;showOver()},d0*1000+COL_MS+FLASH_MS+500);
 }
 function showOver(){
   const nf=(S.newFound||[]).slice(0,8),st=(d,ms)=>`style="animation-delay:${(RM0||RM_FORCE)?0:d}ms"`;
@@ -1195,7 +1200,7 @@ const achQ=[];let achShowing=false;
 function achGive(id,quiet){if(tut||ACH.u[id])return;const a=ACHS.find(x=>x.id===id);if(!a)return;ACH.u[id]=Date.now();achSave();if(!quiet){achQ.push(a);if(!achShowing)achNext()}}
 function achNext(){const a=achQ.shift();if(!a){achShowing=false;return}achShowing=true;
   const t=$('#achT');t.innerHTML=`<span class="ai">${a.ic}</span><span><small>${a.secret?'シークレット実績':'実績'}を解除(${achGot()}/${achN()})</small><b>${a.n}</b><i>${a.d}</i></span>`;
-  t.classList.add('show');sfx('ach');setTimeout(()=>{t.classList.remove('show');setTimeout(achNext,450)},3000)}
+  const d=beatDelay(.03,1);sfx('ach');setTimeout(()=>{t.classList.add('show');setTimeout(()=>{t.classList.remove('show');setTimeout(achNext,450)},3000)},d*1000)}   // 表示も音と同じ拍で
 // 盤の状態から判定できるもの(置いたあと・ゲームの終わりに呼ぶ)
 function achScan(){
   if(tut||!S)return;const m=S.maxT,c=S.chainMax||0,p=S.score,mv=S.moves,rem=S.cap-S.ring.length;
@@ -1402,7 +1407,7 @@ showTitle();
 if(!instShow())bootNext();
 if(document.fonts&&document.fonts.load)document.fonts.load(`800 20px 'M PLUS Rounded 1c'`).then(()=>{refresh();if(onTitle)refreshTitle()}).catch(()=>{});
 requestAnimationFrame(frame);
-window.__L=()=>({S,size,busy,tut,simulate,AU,ST,SET,ROT,gen});
+window.__L=()=>({S,size,busy,tut,simulate,AU,ST,SET,ROT,gen,AC});
 }
 </script>
 <script>if('serviceWorker' in navigator&&location.protocol==='https:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
