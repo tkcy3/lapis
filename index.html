@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.7';
+const VER='0.7.8';
 const CHANGES=[
+  ['0.7.8','2026-11-23',['🎵 はじめて遊ぶときのBGMの音量を「中」にしました']],
   ['0.7.7','2026-11-23',['⚖ やり込んでも終わりが来るようにしました。加護は6・10・14・18の4回まで(銀河を超えたら、もう出ません)','🎁 重ねがけの上限を下げました。広い軌道は1回まで、時空のほころびは2回まで、共鳴軌道は1回(1.5倍)まで','🌫 38を超えると、チリに「古い宇宙のかけら」(ばらばらの小さな数)がまざりはじめ、だんだん増えていきます']],
   ['0.7.6','2026-11-23',['🎹 星を置く音を、カリンバのような柔らかい音にしました。流れている和音の中で、小さい星ほど高く、大きい星ほど低く鳴ります。彗星はいちばん高く、暗黒彗星は低く']],
   ['0.7.5','2026-11-23',['🌀 重力崩壊も曲に乗せました。拍に合わせて崩れはじめ、曲がゆっくり消えていき、閃光は拍の頭に来ます','📖 チュートリアルの連鎖も、曲のリズムに乗るようにしました']],
@@ -265,7 +266,7 @@ let COL_MS=2300;const FLASH_MS=900;   // 崩壊の長さは、閃光が拍の頭
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const tipEl=$('#tip');
-let onTitle=false,S=null,ST={best:0,bestT:0,games:0,found:[],tut:false},SET={sound:true,vib:true,bgm:1,share:0};
+let onTitle=false,S=null,ST={best:0,bestT:0,games:0,found:[],tut:false},SET={sound:true,vib:true,bgm:2,share:0};
 let disp={},ghosts=[],parts=[],fx=[];
 let busy=false,hover=null,pdown=false,size=300,dpr=1,tut=null,saved=null,cS=1,simKey='',sim=null,tipLock=0;
 
