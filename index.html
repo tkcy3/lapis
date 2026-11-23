@@ -109,7 +109,7 @@ body.onTitle #app{visibility:hidden}
 .chg h3{font-size:15px;margin:10px 0 4px;color:#e0bd6a;text-align:left}.chg details{margin:0 0 4px;text-align:left}.chg summary{font-size:14px;color:var(--sub);padding:8px 0;cursor:pointer}
 #ver{margin-top:6px;background:none;border:0;color:var(--sub);font:500 14px var(--f);padding:6px 10px;min-height:36px}
 #ver.new{color:#e0bd6a;font-weight:800}
-.tBest{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:15px;min-height:40px}
+.tBest{display:flex;align-items:center;gap:10px;color:var(--sub);font-size:15px;min-height:40px;line-height:1.45;text-align:left}.tBest span{white-space:nowrap}
 .tBest canvas{width:36px;height:36px}
 .tBest b{color:var(--ink)}
 .tMain,.tSub{width:100%;max-width:380px}
@@ -157,7 +157,7 @@ body.onTitle #app{visibility:hidden}
 .rv{opacity:0;animation:rv .7s ease-out forwards}
 @keyframes rv{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .ovr h2{font-size:26px;margin-top:4px}
-.nfr{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:4px 0 6px}.nfr span{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--sub);width:64px}.nfr canvas{width:34px;height:34px}
+.nfr{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:4px 0 6px}.nfr span{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--sub);width:64px}.nfr canvas{width:34px;height:34px}.nfr.many{gap:4px;max-width:330px;margin-left:auto;margin-right:auto}.nfr.many span{width:auto}.nfr.many canvas{width:28px;height:28px}
 @media (prefers-reduced-motion:reduce){.panel{animation:none}#score{transition:none}.rv{animation:none;opacity:1}}
 </style>
 </head>
@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.9';
+const VER='0.8.0';
 const CHANGES=[
+  ['0.8.0','2026-11-23',['🌌 ゲームオーバーに余韻を。閃光のあと、星雲のなごりがゆっくり広がって薄れ、星くずが漂い、いちばん大きく育った星が光の中から姿を見せます。長く残る和音と遠いグラスの音が鳴り、結果を見ているあいだ曲が小さく戻ってきます','🔢 結果画面で図鑑から戻ったとき、点数がもう一度数え直されないようにしました','🪐 「この宇宙で はじめて見つけた星」を、8つまでではなく全部見せるようにしました(多いときは小さく並べます)','📐 タイトルの「いちばん大きい星」と「BEST」を2行に分けて、変なところで折り返さないようにしました']],
   ['0.7.9','2026-11-23',['✨ 合体した直後に星がチカッと点滅して見えていたのを直しました。拍の瞬間までは彗星(や前の数)のまま見せ、吸い寄せられる星はちょうど拍で重なってすっと消え、星くずは星の縁から外へ散るようにしました']],
   ['0.7.8','2026-11-23',['🎵 はじめて遊ぶときのBGMの音量を「中」にしました']],
   ['0.7.7','2026-11-23',['⚖ やり込んでも終わりが来るようにしました。加護は6・10・14・18の4回まで(銀河を超えたら、もう出ません)','🎁 重ねがけの上限を下げました。広い軌道は1回まで、時空のほころびは2回まで、共鳴軌道は1回(1.5倍)まで','🌫 38を超えると、チリに「古い宇宙のかけら」(ばらばらの小さな数)がまざりはじめ、だんだん増えていきます']],
@@ -263,7 +264,7 @@ const BODIES=[
   ['ブラックホール','h','#05060c','#f3aa60'],['銀河','s','#3b2f86','#f4dca4']
 ];
 let NOW=0,ROT=0,lastT=0,COL=0;   // COL: 重力崩壊が始まった時刻(ゲームオーバー演出)
-let COL_MS=2300;const FLASH_MS=900;   // 崩壊の長さは、閃光が拍の頭に来るように毎回決める
+let COL_MS=2300;const FLASH_MS=900,AFTER_MS=3000;   // 崩壊の長さは、閃光が拍の頭に来るように毎回決める
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const tipEl=$('#tip');
@@ -340,6 +341,7 @@ function gen(){
   return{t:'n',v};
 }
 function newGame(){
+  COL=0;
   achDay();
   S=blank();
   for(let i=0;i<6;i++)S.ring.push({id:S.nid++,t:'n',v:1+Math.floor(rnd()*3)});
@@ -570,7 +572,13 @@ function draw(t){
     if(fp<0){const g=c.createRadialGradient(cx,cy,0,cx,cy,cr*(.6+cin));g.addColorStop(0,`rgba(255,240,220,${.25+.6*cin})`);g.addColorStop(1,'rgba(255,240,220,0)');c.fillStyle=g;c.beginPath();c.arc(cx,cy,cr*(.6+cin),0,TAU);c.fill()}
     else if(fp<1){const rr=size*(.04+.55*Math.sqrt(fp)),fg=c.createRadialGradient(cx,cy,0,cx,cy,rr);fg.addColorStop(0,`rgba(245,248,255,${.9*(1-fp)})`);fg.addColorStop(.5,`rgba(200,215,255,${.35*(1-fp)})`);fg.addColorStop(1,'rgba(200,215,255,0)');c.fillStyle=fg;c.beginPath();c.arc(cx,cy,rr,0,TAU);c.fill();
       c.lineWidth=2;c.strokeStyle=`rgba(255,226,170,${.6*(1-fp)})`;c.beginPath();c.arc(cx,cy,rr*1.25,0,TAU);c.stroke();
-      if(!COL.burst){COL.burst=1;for(let i=0;i<40;i++){const a=Math.random()*TAU,sp=1.5+Math.random()*5.5,v=1+Math.floor(Math.random()*18);parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1.4,s:1.5+Math.random()*2.5,c:gemColor(v)})}}}
+      if(!COL.burst){COL.burst=1;for(let i=0;i<40;i++){const a=Math.random()*TAU,sp=1.5+Math.random()*5.5,v=1+Math.floor(Math.random()*18);parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1.4,s:1.5+Math.random()*2.5,c:gemColor(v)})}
+        const vs=S.ring.filter(o=>o.t==='n').map(o=>o.v);for(let i=0;i<34;i++){const a=Math.random()*TAU,sp=.25+Math.random()*.8,v=vs.length?vs[i%vs.length]:1+i%18;parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1,dl:.004+Math.random()*.003,s:.8+Math.random()*1.4,c:gemColor(v)})}}}   // ゆっくり漂って消えていく星くず(環にいた星の色)
+    if(!(RM0||RM_FORCE)&&fp>.3){   // 余韻: 星雲のなごりがゆっくり広がって薄れ、いちばん大きく育った星が光の中から姿を見せる
+      const ag=Math.min(1,(fp-.3)*FLASH_MS/AFTER_MS),e=1-Math.pow(1-ag,3),col=corOf(S.maxT),rr=size*(.12+.3*e);
+      const ng=c.createRadialGradient(cx,cy,rr*.35,cx,cy,rr*1.12);ng.addColorStop(0,rgba(col,0));ng.addColorStop(.82,rgba(col,.08*(1-ag)));ng.addColorStop(1,rgba(col,0));c.fillStyle=ng;c.beginPath();c.arc(cx,cy,rr*1.12,0,TAU);c.fill();
+      c.lineWidth=Math.max(1,size*.006);c.strokeStyle=rgba(col,.22*(1-ag));c.beginPath();c.arc(cx,cy,rr,0,TAU);c.stroke();
+      c.globalAlpha=Math.min(1,ag*1.6);drawBody(c,cx,cy,cr*(1.05+.25*e),S.maxT,t);c.globalAlpha=1}
   }
   if(S.center&&!busy&&!S.over){
     cS+=(1-cS)*.2;
@@ -584,7 +592,7 @@ function draw(t){
     else c.fillText(n+' / '+S.cap,cx,cy+cr*1.75);
   }
   // 粒
-  parts=parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=.93;p.vy*=.93;p.l-=.028;if(p.l<=0)return false;c.globalAlpha=p.l;c.fillStyle=p.c;c.beginPath();c.arc(p.x,p.y,p.s*p.l+1,0,TAU);c.fill();c.globalAlpha=1;return true});
+  parts=parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=p.dl?.985:.93;p.vy*=p.dl?.985:.93;p.l-=p.dl||.028;if(p.l<=0)return false;c.globalAlpha=p.l;c.fillStyle=p.c;c.beginPath();c.arc(p.x,p.y,p.s*p.l+1,0,TAU);c.fill();c.globalAlpha=1;return true});
   // 文字演出
   fx=fx.filter(f=>{
     const k=(now-f.t0)/f.dur;if(k>=1)return false;
@@ -655,6 +663,10 @@ function sfx(k,n=1,w=0){   // w: 鳴らすまでの秒(拍に合わせるとき)
   else if(k==='over'){tone(330,.5,'triangle',.12,0,.5);tone(247,.7,'triangle',.1,.25,.5)}
   else if(k==='collapse'){const d=COL_MS/1000;tone(392,d,'sine',.09,w,.18);tone(196,d,'triangle',.05,w+.1,.25)}
   else if(k==='flash'){tone(73.4,1.2,'sine',.16,w,.5);tone(1174.7,.9,'sine',.05,w+.02,.7)}   // 閃光はニ(D)の音
+  else if(k==='after'){const t0=AC.currentTime+w;   // ゆっくりふくらんで長く残る和音(Dmaj9)と、ときどき遠くで鳴るグラス
+    [[50,.05],[57,.04],[66,.032],[73,.022],[76,.016]].forEach(([m,v],j)=>[0,7].forEach(ct=>{const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='triangle';o.frequency.value=mtof(m);o.detune.value=ct;f.type='lowpass';f.frequency.value=1300;
+      g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v*.5,t0+1.3+j*.18);g.gain.exponentialRampToValueAtTime(.0001,t0+7.5);o.connect(f).connect(g).connect(AC.destination);o.start(t0);o.stop(t0+7.6)}));
+    [86,81,78,74].forEach((m,j)=>clink(m,w+BGM_STEP*2*(j+1),.014))}
   else if(k==='chord'){const d=beatDelay(0,.5);[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,d+j*BGM_STEP/2))}   // 結果の和音(ニ長調の主和音)も拍の頭から16分で
   else if(k==='chapter'){const d=beatDelay(.05,.5),ts=chordTones().filter(x=>x>=62&&x<=86);ts.forEach((m,j)=>shimmer(m,d+j*.06,.02))}   // 章: 次の拍の頭で、いまの和音
   else if(k==='perk'){const L=chordLadder(),d=beatDelay(.03,1),g=BGM_STEP/2;[0,1,2,4].forEach((i,j)=>clink(L[i],d+j*g,.022))}   // 加護: 和音の音を16分で上る
@@ -836,26 +848,27 @@ function gameOver(ev){
   hover=null;COL=Object.assign(new Number(performance.now()+d0*1000),{burst:0});
   bgmFade(0,rm?.7:d0+COL_MS/1000);sfx('collapse',1,d0);setTimeout(()=>vib(20),d0*1000);
   sfx('flash',1,d0+COL_MS/1000);setTimeout(()=>vib([40,40,90]),d0*1000+COL_MS);
-  setTimeout(()=>{COL=0;showOver()},d0*1000+COL_MS+FLASH_MS+500);
+  if(!rm)sfx('after',1,d0+COL_MS/1000);   // 余韻の和音
+  setTimeout(()=>showOver(),d0*1000+COL_MS+(rm?FLASH_MS+500:FLASH_MS*.3+AFTER_MS+250));   // 崩壊のあとの静けさは結果の後ろにも残す(COLは次のゲームで消す)
 }
 function showOver(){
-  const nf=(S.newFound||[]).slice(0,8),st=(d,ms)=>`style="animation-delay:${(RM0||RM_FORCE)?0:d}ms"`;
+  const back=!!RM_FORCE,nf=S.newFound||[],many=nf.length>8,st=(d,ms)=>`style="animation-delay:${(RM0||RM_FORCE)?0:Math.round(d*1.15)}ms"`;   // back: 図鑑から戻ってきたとき
   open(`<div class="ovr">${S.chap?`<p class="small rv chl" ${st(0)}>${CHAPS[S.chap-1][1]}　${CHAPS[S.chap-1][2]}</p>`:''}<p class="small rv" ${st(0)}>あなたの宇宙は</p><canvas id="bigc" class="rv" ${st(150)}></canvas>
     <h2 class="rv" ${st(350)}>${bodyName(S.maxT)}</h2><p class="small rv" ${st(450)}>まで育ちました</p>
     <div class="big rv" id="oS" ${st(800)}>0</div><p class="rv" ${st(1500)}>${S.newBest?'<b style="color:#d8bd6a">ベスト更新!</b>':'BEST '+ST.best}</p>
     <p class="small rv" ${st(1600)}>最大 ${S.chainMax} 連鎖 ・ ${S.moves} 手${S.ms>60000?` ・ ${Math.round(S.ms/60000)} 分`:''}</p>
-    ${nf.length?`<p class="small rv" ${st(1750)}>この宇宙で はじめて見つけた星</p><div class="nfr rv" ${st(1800)}>${nf.map(v=>`<span><canvas data-v="${v}"></canvas>${bodyName(v)}</span>`).join('')}</div>`:''}
+    ${nf.length?`<p class="small rv" ${st(1750)}>この宇宙で はじめて見つけた星${many?` ${nf.length}種類`:''}</p><div class="nfr rv${many?' many':''}" ${st(1800)}>${nf.map(v=>`<span><canvas data-v="${v}"></canvas>${many?'':bodyName(v)}</span>`).join('')}</div>`:''}
     <div class="rv" id="oBtns" ${st(2000)}><button class="btn pri" id="againB">もう一度</button><div class="row"><button class="btn" id="galB2">図鑑</button><button class="btn" id="ttlB">タイトルへ</button></div></div></div>`);
   paintMini($('#bigc'),{t:'n',v:S.maxT},120);
-  document.querySelectorAll('.nfr canvas').forEach(el=>paintMini(el,{t:'n',v:+el.dataset.v},34));
-  const el=$('#oS'),t0=performance.now()+((RM0||RM_FORCE)?0:800),goal=S.score;
-  (function up(){const k=Math.min(1,Math.max(0,(performance.now()-t0)/900));el.textContent=Math.round(goal*(1-Math.pow(1-k,3)));if(k<1&&$('#oS')===el)requestAnimationFrame(up)})();
-  let ready=(RM0||RM_FORCE);setTimeout(()=>{ready=true},(RM0||RM_FORCE)?0:2200);   // 余韻のあいだは押せない(うっかり飛ばさないように)
+  document.querySelectorAll('.nfr canvas').forEach(el=>paintMini(el,{t:'n',v:+el.dataset.v},many?28:34));
+  const el=$('#oS'),t0=performance.now()+((RM0||RM_FORCE)?0:920),goal=S.score;
+  if(back)el.textContent=goal;else(function up(){const k=Math.min(1,Math.max(0,(performance.now()-t0)/900));el.textContent=Math.round(goal*(1-Math.pow(1-k,3)));if(k<1&&$('#oS')===el)requestAnimationFrame(up)})();
+  let ready=(RM0||RM_FORCE);setTimeout(()=>{ready=true},(RM0||RM_FORCE)?0:2500);   // 余韻のあいだは押せない(うっかり飛ばさないように)
   const g=f=>()=>{if(ready)f()};
   $('#againB').onclick=g(()=>{close();bgmFade(1,.8);newGame()});
   $('#galB2').onclick=g(()=>showGallery(showOverNow));
   $('#ttlB').onclick=g(()=>{bgmFade(1,.8);showTitle()});
-  setTimeout(()=>sfx('chord'),(RM0||RM_FORCE)?0:800);
+  if(!back){setTimeout(()=>sfx('chord'),RM0?0:920);setTimeout(()=>{if(S&&S.over&&!onTitle&&$('#oS'))bgmFade(.45,8)},5000)}   // 結果を見ているあいだ、曲が遠くから小さく戻ってくる
 }
 function showOverNow(){RM_FORCE=1;showOver();RM_FORCE=0}
 /* ---------- 画面(オーバーレイ) ---------- */
@@ -979,11 +992,11 @@ function refreshTitle(){
   $('#tCont').classList.toggle('hidden',!hasCont());
   $('#tNew').classList.toggle('pri',!hasCont());
   const b=$('#ver'),nw=verUnseen();b.textContent='v'+VER+(nw?' ・ 更新内容を見る':'');b.classList.toggle('new',nw);
-  $('#tBest').innerHTML=ST.bestT?`<canvas id="tBestC"></canvas><span>いちばん大きい星 <b>${bodyName(ST.bestT)}</b> ・ BEST <b>${ST.best}</b></span>`:'';
+  $('#tBest').innerHTML=ST.bestT?`<canvas id="tBestC"></canvas><span>いちばん大きい星 <b>${bodyName(ST.bestT)}</b><br>BEST <b>${ST.best}</b></span>`:'';
   if(ST.bestT)paintMini($('#tBestC'),{t:'n',v:ST.bestT},36);
   $('#a2hChip').classList.toggle('hidden',!canInstall()||isApp()||!!ST.a2h||ST.games<1);
 }
-function showTitle(){
+function showTitle(){COL=0;
   close();if(S&&!tut)save();
   onTitle=true;document.body.classList.add('onTitle');$('#title').classList.add('on');try{sky()}catch(e){}
   refreshTitle();
@@ -1134,7 +1147,7 @@ function bgmStep(i,t){
 function bgmSched(){if(!AC)return;auOut();while(AU.next<AC.currentTime+.3){bgmStep(AU.step,AU.next);AU.step=(AU.step+1)%64;if(!AU.step)AU.loop++;AU.next+=BGM_STEP}}
 function bgmStart(){ac();if(!AC||AU.playing)return;AU.playing=true;AU.step=0;AU.loop=0;AU.next=AC.currentTime+.2;AU.timer=setInterval(bgmSched,25)}
 function bgmStop(){AU.playing=false;clearInterval(AU.timer)}
-function bgmFade(to,sec){if(!AC||!AU.out)return;const g=AU.out.gain,v=to?BGM_VOL[SET.bgm||0]:0;try{g.cancelScheduledValues(AC.currentTime);g.setValueAtTime(g.value,AC.currentTime);g.linearRampToValueAtTime(v,AC.currentTime+sec)}catch(e){g.value=v}}
+function bgmFade(to,sec){if(!AC||!AU.out)return;const g=AU.out.gain,v=to?BGM_VOL[SET.bgm||0]*to:0;try{g.cancelScheduledValues(AC.currentTime);g.setValueAtTime(g.value,AC.currentTime);g.linearRampToValueAtTime(v,AC.currentTime+sec)}catch(e){g.value=v}}
 function bgmApply(){if(!SET.bgm){bgmStop();return}bgmStart();const o=auOut();if(o)o.gain.value=BGM_VOL[SET.bgm]}
 // ブラウザは最初のタップまで音を出せないので、BGMは最初のタッチで始まる
 document.addEventListener('pointerdown',()=>{if(SET.bgm&&!AU.playing)bgmStart()},true);
