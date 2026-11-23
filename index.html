@@ -205,7 +205,7 @@ body.onTitle #app{visibility:hidden}
 {
 const VER='0.6.3';
 const CHANGES=[
-  ['0.6.3','2026-11-23',['🧭 背景の星空のふちに方角(N・E・S・W)を入れました','✨ 星座の線と名前は、設定でON/OFFできるようにしました(はじめはOFF)']],
+  ['0.6.3','2026-11-23',['🧭 背景の星空に方角(N・E・S・W)を入れました。盤のまわりに、上下左右おなじ距離で並びます','✨ 星座の線と名前は、設定でON/OFFできるようにしました(はじめはOFF)']],
   ['0.6.2','2026-11-23',['🌌 背景の夜空が、いま真上を見上げたときに見える本物の星と星座になりました。時間とともにゆっくり回ります(設定で「現在地」の空にもできます)']],
   ['0.6.1','2026-11-23',['📖 チュートリアルにKEEPの使い方を入れました']],
   ['0.6.0','2026-11-23',['📦 「戻す」をやめて「KEEP」にしました。いまの星を1つしまっておけて、もう一度タップで入れかえ(1手に1回)。彗星をしまっておけば、ピンチで使えます','🎒 加護「時間のゆがみ」は「時空のポケット」に。KEEPの枠が2つになります']],
@@ -918,7 +918,7 @@ function refreshTitle(){
 }
 function showTitle(){
   close();if(S&&!tut)save();
-  onTitle=true;document.body.classList.add('onTitle');$('#title').classList.add('on');
+  onTitle=true;document.body.classList.add('onTitle');$('#title').classList.add('on');try{sky()}catch(e){}
   refreshTitle();
 }
 function hideTitle(){onTitle=false;document.body.classList.remove('onTitle');$('#title').classList.remove('on');resize()}
@@ -1208,7 +1208,8 @@ function sky(){
   const el=$('#sky'),d=Math.min(window.devicePixelRatio||1,2),W=innerWidth,H=innerHeight;el.width=W*d;el.height=H*d;const c=el.getContext('2d');c.setTransform(d,0,0,d,0,0);
   skyParse();skyLoc();SKY.at=Date.now();
   const L=lst(SKY.at)*Math.PI/180,la=SKY.lat*Math.PI/180,sl=Math.sin(la),cl=Math.cos(la),rad=Math.PI/180;
-  const k=Math.max(W,H)/2*1.04,cx=W/2,cy=H/2;   // 真上が画面のまん中。北が上・東が左(星図と同じ向き)。上下の端がほぼ地平線
+  const rb=$('#cv').getBoundingClientRect(),onBoard=!onTitle&&rb.width>0;
+  const k=Math.max(W,H)/2*1.04,cx=onBoard?rb.left+rb.width/2:W/2,cy=onBoard?rb.top+rb.height/2:H/2;   // 真上が盤のまん中(タイトルでは画面のまん中)。北が上・東が左(星図と同じ向き)。上下の端がほぼ地平線
   const proj=(ra,de)=>{const h=L-ra*rad,dd=de*rad,sa=sl*Math.sin(dd)+cl*Math.cos(dd)*Math.cos(h);if(sa<-.02)return null;
     const alt=Math.asin(Math.max(-1,Math.min(1,sa))),az=Math.atan2(-Math.cos(dd)*Math.sin(h),Math.sin(dd)*cl-Math.cos(dd)*Math.cos(h)*sl),r=k*Math.tan((Math.PI/2-alt)/2);
     return[cx-r*Math.sin(az),cy-r*Math.cos(az),alt]};
@@ -1221,12 +1222,12 @@ function sky(){
     c.globalAlpha=Math.max(.1,Math.min(.85,.88-m*.15))*fade;c.fillStyle=COLS[b];c.beginPath();c.arc(q[0],q[1],Math.max(.45,1.75-m*.27),0,TAU);c.fill()}
   // 星座の名前(明るい星座だけ、うっすら)
   c.globalAlpha=1;c.font=`500 10px ${FONT}`;c.textAlign='center';c.fillStyle='rgba(170,185,230,.15)';
-  const rb=$('#cv').getBoundingClientRect(),rx=rb.left+rb.width/2,ry=rb.top+rb.height/2,rr=rb.width*.56;   // 盤の後ろには名前を出さない
-  if(SET.skyNames)for(const[n,a,dd,r]of SKY.names){if(r>2)continue;const q=proj(a,dd);if(q&&q[2]>.15&&(!rb.width||Math.hypot(q[0]-rx,q[1]-ry)>rr)&&Math.abs(q[0]-cx)<cx-c.measureText(n).width/2-6)c.fillText(n,q[0],q[1])}   // 画面の端で切れる名前は出さない
+  const rx=cx,ry=cy,rr=rb.width*.56;   // 盤の後ろには名前を出さない
+  if(SET.skyNames)for(const[n,a,dd,r]of SKY.names){if(r>2)continue;const q=proj(a,dd);if(q&&q[2]>.15&&(!onBoard||Math.hypot(q[0]-rx,q[1]-ry)>rr)&&q[0]>c.measureText(n).width/2+6&&q[0]<W-c.measureText(n).width/2-6)c.fillText(n,q[0],q[1])}   // 画面の端で切れる名前は出さない
   // 方角(南を向いて真上を見上げた向き: 上が北、下が南、左が東、右が西)
   c.globalAlpha=1;c.font=`600 9px ${FONT}`;c.fillStyle='rgba(170,185,230,.3)';c.textAlign='center';c.textBaseline='middle';
-  const st=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0,sb=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
-  c.fillText('N',cx,st+7);c.fillText('S',cx,H-sb-7);c.fillText('E',7,cy);c.fillText('W',W-7,cy);
+  if(onBoard){const dd=Math.min(rb.width*.447+16,W/2-7);   // 盤の外側のゲージから少し離して、上下左右おなじ距離に
+    c.fillText('N',cx,cy-dd);c.fillText('S',cx,cy+dd);c.fillText('E',cx-dd,cy);c.fillText('W',cx+dd,cy)}
   c.textBaseline='alphabetic';c.globalAlpha=1;
 }
 setInterval(()=>{if(!document.hidden)sky()},60000);   // 1分ごとに空を回す
