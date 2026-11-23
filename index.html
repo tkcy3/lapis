@@ -16,7 +16,7 @@
    IDEA: 重力の中心を回る星々。チリが集まって惑星・恒星・銀河へ育つ
    PICTURE: 盤面そのもの。ゆっくり公転する星が軌道に並ぶ
    COLOUR/TYPE: 深い藍色の宇宙(真っ黒ではなく青みを残す)・フラットな単色・色とりどりの星 + 彗星(＋)とワームホール(－) / M PLUS Rounded 1c 太字
-   LAYOUT: 上に点数、中央に環、下にNEXT・加護・戻す(片手で届く位置) */
+   LAYOUT: 上に点数、中央に環、下にNEXT・加護・KEEP(片手で届く位置) */
 :root{--bg1:#0f1430;--bg2:#0a0e22;--ink:#e4e8f4;--sub:#8b94bb;--panel:#151b3a;--btn:#222a50;--line:rgba(255,255,255,.08);--acc:#d9705f;--f:'M PLUS Rounded 1c',system-ui,sans-serif}
 *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
@@ -41,6 +41,8 @@ footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;alig
 .next span{font-size:12px;font-weight:800;color:var(--sub);writing-mode:vertical-rl;letter-spacing:.05em}
 #nextl{display:flex;gap:4px}
 #nextl canvas{width:44px;height:44px}
+#keepl{display:flex;gap:4px}#keepl canvas{width:44px;height:44px}.keep{cursor:pointer;transition:opacity .2s,box-shadow .3s}.keep.off{opacity:.42}
+.keep.hint{animation:keepHint 1.2s ease-in-out infinite}@keyframes keepHint{0%,100%{box-shadow:0 0 0 1.5px rgba(255,170,140,.25) inset}50%{box-shadow:0 0 0 2px rgba(255,170,140,.85) inset,0 0 14px rgba(255,140,110,.35)}}
 #perkl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .pk{position:relative;width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--ink)}
 .pk svg{width:24px;height:24px}
@@ -164,7 +166,7 @@ body.onTitle #app{visibility:hidden}
   <footer>
     <div class="next"><span>NEXT</span><div id="nextl"></div></div>
     <div id="perkl"></div>
-    <button class="ub" id="undoB" aria-label="1手戻す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/></svg><b id="undoN">2</b></button>
+    <div class="next keep" id="keepB" role="button" aria-label="取っておく"><div id="keepl"></div><span>KEEP</span></div>
   </footer>
 </div>
 <div id="title">
@@ -200,8 +202,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.5.6';
+const VER='0.6.0';
 const CHANGES=[
+  ['0.6.0','2026-11-23',['📦 「戻す」をやめて「KEEP」にしました。いまの星を1つしまっておけて、もう一度タップで入れかえ(1手に1回)。彗星をしまっておけば、ピンチで使えます','🎒 加護「時間のゆがみ」は「時空のポケット」に。KEEPの枠が2つになります']],
   ['0.5.6','2026-11-23',['🛠 環に彗星が2つ残っていると、満杯近くでも彗星が来なくなっていたのを直しました。少なくとも5手に1回は必ず来ます']],
   ['0.5.5','2026-11-23',['💓 置ける数が「のこり2つ」になると、重力が強まります。画面のふちが赤く脈打ち、星がふるえて中心へ引かれ、曲がこもって心音が聞こえます。のこり1つでさらに強く']],
   ['0.5.4','2026-11-23',['☄ 彗星(＋)の出かたを本家Atomasに近づけました。少なくとも5手に1回はそのままに、それ以外で出る確率を下げました','⏸ 環で出番を待っている彗星が2つ以上あるあいだは、新しい彗星を出さないようにしました(序盤に彗星がたまりすぎない)','🌀 ワームホール(－)は、ほぼ20手ごとに来るようにしました。始まってすぐには来ません','🪐 そのぶん、置ける数を18→19に増やしました(1プレイの長さはほぼ同じ)']],
@@ -259,7 +262,7 @@ const PERKS={
   minus:{n:'時空のほころび',d:'ワームホール(－)が出やすくなる',max:3},
   sight:{n:'望遠鏡',d:'NEXTが1つ増える',max:2},
   room:{n:'広い軌道',d:'置ける数が1つ増える',max:3},
-  rewind:{n:'時間のゆがみ',d:'ゲームオーバーになる瞬間、1度だけ3手前に戻る',max:2},
+  rewind:{n:'時空のポケット',d:'KEEPの枠が1つふえる(2つまでしまえる)',max:1},
   dark:{n:'暗黒物質',d:'何でも合体できる暗黒彗星が出やすくなる',max:2},
   shower:{n:'流れ星',d:'次の3つが彗星(＋)になる(すぐ発動)',max:99},
   echo:{n:'共鳴軌道',d:'3連鎖目からの得点が1.5倍(重ねると2倍)',max:2},
@@ -273,7 +276,7 @@ function icon(k){
     minus:'<circle cx="12" cy="12" r="8" stroke="#5b8fd9" stroke-width="2.6"/><path d="M8.5 12h7" stroke="#fff" stroke-width="2"/>',
     sight:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
     room:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="2.6" fill="currentColor"/>',
-    rewind:'<path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/>',
+    rewind:'<rect x="3.5" y="8" width="17" height="12" rx="3"/><path d="M8 8V5.5h8V8"/><path d="M12 11.5v5M9.5 14h5"/>',
     dark:'<path d="M9 15 L21 22 L15 9 Z" fill="#a58cff" fill-opacity=".45" stroke="none"/><circle cx="9.5" cy="9.5" r="6" fill="#2a2142" stroke="#a58cff" stroke-width="1.4"/><path d="M9.5 7v5M7 9.5h5" stroke="#e3dbff" stroke-width="1.8"/>',
     lift:'<path d="M12 19V5M6 11l6-6 6 6"/>',
     shower:'<path d="M3 21l8-8" stroke-opacity=".45"/><path d="M6 14l-3 3" stroke-opacity=".3"/><path d="M15 3l1.6 4.4L21 9l-4.4 1.6L15 15l-1.6-4.4L9 9l4.4-1.6z" fill="#ffd9a0" stroke="none"/>',
@@ -284,7 +287,7 @@ function icon(k){
 }
 
 /* ---------- 状態 ---------- */
-function blank(){return{ring:[],center:null,queue:[],score:0,moves:0,gsp:0,rng:(Date.now()^Math.floor(Math.random()*1e9))|0,perks:{},cap:19,undo:2,hist:[],maxT:3,mile:6,gm:0,gmN:20,pend:null,over:false,nid:1,chainMax:0,picks:[],undoUsed:0,minusN:0,darkN:0,ms:0,last:0,chap:0}}
+function blank(){return{ring:[],center:null,queue:[],score:0,moves:0,gsp:0,rng:(Date.now()^Math.floor(Math.random()*1e9))|0,perks:{},cap:19,hold:[],kept:false,hist:[],maxT:3,mile:6,gm:0,gmN:20,pend:null,over:false,nid:1,chainMax:0,picks:[],undoUsed:0,minusN:0,darkN:0,ms:0,last:0,chap:0}}
 function plusPiece(){const P=S.perks;const dk=P.dark?P.dark/30:(S.score>=750?1/90:0);return rnd()<dk?{t:'d'}:{t:'p'}}
 const DUST0=200;
 const CHAPS=[[5,'第一章','惑星の誕生'],[10,'第二章','星のめざめ'],[13,'第三章','星の一生'],[17,'第四章','重力の果て'],[18,'終章','銀河']];
@@ -600,6 +603,7 @@ function sfx(k,n=1){
   else if(k==='chord')[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,j*.12));
   else if(k==='perk')[0,2,4,7].forEach((i,j)=>tone(SC[i],.22,'triangle',.1,j*.08));
   else if(k==='undo')tone(760,.16,'sine',.08,0,.6);
+  else if(k==='keep'){tone(660,.06,'sine',.06,0,1.25);tone(990,.08,'sine',.035,.05,1.1)}
   else if(k==='ng')tone(200,.1,'sine',.06);
   else if(k==='new')[3,5,7].forEach((i,j)=>tone(SC[i],.3,'sine',.08,j*.07));
 }
@@ -622,7 +626,6 @@ cv.addEventListener('pointerup',e=>{if(!pdown)return;pdown=false;const h=hit(loc
 cv.addEventListener('pointercancel',()=>{pdown=false;hover=null});
 
 function snap(){const{hist,...rest}=S;return JSON.stringify(rest)}
-function pushHist(){if(tut)return;S.hist.push(snap());if(S.hist.length>12)S.hist.shift()}
 function tutAllow(h){
   const a=TUT[tut.step].act,n=S.ring.length;
   if(!h||h.k!==a.k)return false;
@@ -635,11 +638,11 @@ function act(h){
   if(tut&&!tutAllow(h)){sfx('ng');vib(20);return}
   if(!tut){const now=Date.now();if(S.last)S.ms=(S.ms||0)+Math.min(30000,now-S.last);S.last=now}
   if(h.k==='c'){
-    if(S.center&&S.center.abs&&S.center.t==='n'){pushHist();S.center={t:'p',abs:true};cS=.5;sfx('conv');save();refresh();if(tut)tutNext()}
+    if(S.center&&S.center.abs&&S.center.t==='n'){S.center={t:'p',abs:true};cS=.5;sfx('conv');save();refresh();if(tut)tutNext()}
     return;
   }
   if(h.k==='a'){
-    pushHist();
+    
     const o=S.ring[h.i],d=disp[o.id];
     ghosts.push({o:{t:o.t,v:o.v},a0:d.a,a1:d.a,r0:1,r1:0,t0:performance.now(),dur:220});
     S.ring.splice(h.i,1);delete disp[o.id];syncDisp();
@@ -649,7 +652,8 @@ function act(h){
   place(h.i);
 }
 async function place(i){
-  pushHist();busy=true;
+  busy=true;
+  S.kept=false;
   const c=S.center,n=S.ring.length,a=gapAng(i,n);
   const o={id:S.nid++,t:c.t,v:c.v};
   S.ring.splice(i,0,o);S.center=null;S.moves++;if(S.moves===DUST0+1&&!tut)banner('<small style="color:#c9a2b4">ここから</small><b style="font-size:18px">宇宙のチリが 降り積もりはじめた</b>');if(o.t==='d')S.darkN=(S.darkN||0)+1;
@@ -659,7 +663,7 @@ async function place(i){
   for(let g=0;g<60;g++){const p=findPlus(S.ring,first);first=null;if(p<0)break;await react(p)}
   if(tut){busy=false;refresh();tutNext();return}
   S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});
-  if(S.ring.length>S.cap){busy=false;if(lastRewind())return;gameOver();return}
+  if(S.ring.length>S.cap){busy=false;gameOver();return}
   if(S.ring.length>=S.cap-1)vib(30);
   checkChap();
   if(S.maxT>=S.mile){S.mile+=4;S.pend=pickPerks()}
@@ -699,13 +703,18 @@ function discover(v){
   if(!ST.found.includes(v)){ST.found.push(v);store('lapis_st',ST);if(v>3){(S.newFound=S.newFound||[]).push(v);fx=fx.filter(f=>!f.gem);fx.push({gem:v,t0:performance.now(),dur:1500});sfx('new')}}
 }
 function bumpScore(){const e=$('#score');e.textContent=S.score;e.classList.add('bump');setTimeout(()=>e.classList.remove('bump'),140)}
-function undo(){
-  if(locked()||tut||!S.hist.length||S.undo<=0)return;
-  const keep={undo:S.undo-1,hist:S.hist,undoUsed:(S.undoUsed||0)+1,ms:S.ms,last:S.last};const h=S.hist.pop();
-  S=Object.assign(JSON.parse(h),keep);
-  disp={};ghosts=[];syncDisp();cS=.3;sfx('undo');save();refresh();
+// ---------- KEEP: いまの星を1つしまっておける(1手に1回)。空ならしまって次の星が来る、入っていれば入れかえ ----------
+function holdN(){return 1+Math.min(1,S.perks.rewind||0)}
+function keepSwap(i){
+  if(locked()||tut||!S||S.over||!S.center)return;
+  if(S.kept){sfx('ng');flashTip('KEEPは1手に1回まで');return}
+  if(S.center.abs&&S.center.t==='n'){sfx('ng');flashTip('吸い込んだ星は、そのまま置くか彗星に変えてね');return}
+  if(!S.hold)S.hold=[];const cur={t:S.center.t,v:S.center.v},h=S.hold[i]||null;
+  S.hold[i]=cur;
+  if(h)S.center=h;else{S.center=S.queue.shift();S.queue.push(gen())}
+  S.kept=true;S.keepN=(S.keepN||0)+1;cS=.25;sfx('keep');vib(8);save();refresh();
 }
-$('#undoB').onclick=()=>{ac();undo()};
+$('#keepB').onclick=e=>{ac();const cv=e.target.closest('canvas');const i=cv?[...$('#keepl').children].indexOf(cv):0;keepSwap(Math.max(0,i))};
 
 /* ---------- 加護の選択 ---------- */
 function pickPerks(){
@@ -747,15 +756,6 @@ async function applyPerk(k){
 
 /* ---------- ゲームオーバー ---------- */
 let REW=0;   // 時間が巻き戻るときの、環の逆回転
-function lastRewind(){
-  const left=(S.perks.rewind||0)-(S.rwUsed||0);if(tut||left<=0||!S.hist.length)return false;
-  const idx=Math.max(0,S.hist.length-3),h=S.hist[idx];
-  const keep={hist:S.hist.slice(0,idx),undo:S.undo,undoUsed:S.undoUsed||0,ms:S.ms,last:S.last,rwUsed:(S.rwUsed||0)+1,perks:S.perks,picks:S.picks,mile:S.mile,chap:S.chap,newFound:S.newFound,chainMax:S.chainMax,maxT:S.maxT};
-  S=Object.assign(JSON.parse(h),keep);S.pend=null;
-  disp={};ghosts=[];syncDisp();cS=.3;REW=performance.now();
-  banner('<small style="color:#9fc0f0">時間のゆがみ</small><b>3手前に戻った</b>');sfx('undo');sfx('chord');vib([30,40,30]);
-  save();refresh();return true;
-}
 function gameOver(ev){
   S.over=true;
   const nb=S.score>ST.best;
@@ -796,6 +796,7 @@ const SVG={
   gal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3" fill="currentColor"/></svg>',
   skip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l8 7-8 7z"/><path d="M17 5v14"/></svg>',
   eye:'<svg viewBox="0 0 24 24" fill="none" stroke="#aab5d8" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="#aab5d8"/></svg>',
+  keep:'<svg viewBox="0 0 24 24" fill="none" stroke="#aab5d8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="12" rx="3"/><path d="M8 8V5.5h8V8"/><circle cx="12" cy="14" r="2.6" fill="#aab5d8" stroke="none"/></svg>',
   undo:'<svg viewBox="0 0 24 24" fill="none" stroke="#aab5d8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/></svg>'
 };
 /* ゲーム中のメニュー(☰): Dungeon Chainと同じ形 */
@@ -873,9 +874,9 @@ function showHelp(back,inTut){
     [['gauge'],'外側の線がいっぱいになったら、おしまい'],
     [['eye'],'押したままにすると、置いた結果が先に見える'],
     [['perk'],'大きな星ができると、加護を1つ選べる'],
-    [['undo'],'右下のボタンで、1手戻せる']
+    [['keep'],'右下のKEEPに、いまの星を1つしまえる。もう一度タップで入れかえ(1手に1回)']
   ];
-  const pic=x=>x==='→'?'<i>→</i>':x==='eye'?SVG.eye:x==='undo'?SVG.undo:x==='perk'?icon('plus'):`<canvas data-p="${x}"></canvas>`;
+  const pic=x=>x==='→'?'<i>→</i>':x==='eye'?SVG.eye:x==='undo'?SVG.undo:x==='keep'?SVG.keep:x==='perk'?icon('plus'):`<canvas data-p="${x}"></canvas>`;
   open(`<h2>遊び方</h2>${rows.map(r=>`<div class="hrow"><div class="pics${r[0].length>5?' sm':''}">${r[0].map(pic).join('')}</div><p>${r[1]}</p></div>`).join('')}
     ${inTut?'':'<button class="btn pri" id="hT">▶ チュートリアルで体験する</button>'}<button class="btn" id="hB">${back?'戻る':'閉じる'}</button>`);
   document.querySelectorAll('.pics canvas').forEach(el=>{
@@ -978,7 +979,7 @@ function openConsent(after){
   <div class="cs">
     <p>より遊びやすいゲームにするため、プレイの記録を作者に送らせてください。集めた記録は<b>ゲームバランスの調整・改善のためだけ</b>に使います。</p>
     <h3>送る内容</h3>
-    <ul><li>ゲームが終わったときの記録(点数・いちばん大きい星・手数・最大連鎖・選んだ加護・戻すとワームホールを使った回数・プレイ時間)</li>
+    <ul><li>ゲームが終わったときの記録(点数・いちばん大きい星・手数・最大連鎖・選んだ加護・KEEPとワームホールを使った回数・プレイ時間)</li>
       <li>ゲームのバージョン</li>
       <li>端末ごとにランダムに作られる番号(同じ端末の記録をまとめるためのもので、あなた個人とは結びつきません)</li></ul>
     <h3>送らないもの</h3>
@@ -1001,7 +1002,7 @@ function sendLog(ev){
   if(!shareOn()||tut||!S)return;
   try{
     const d={v:VER,id:devId(),ev,score:S.score,top:S.maxT,moves:S.moves,chain:S.chainMax,chap:S.chap||0,cap:S.cap,ring:S.ring.length,
-      picks:(S.picks||[]).join(' '),undo:S.undoUsed||0,minus:S.minusN||0,dark:S.darkN||0,sec:Math.round((S.ms||0)/1000),games:ST.games,app:isApp()?1:0};
+      picks:(S.picks||[]).join(' '),keep:S.keepN||0,minus:S.minusN||0,dark:S.darkN||0,sec:Math.round((S.ms||0)/1000),games:ST.games,app:isApp()?1:0};
     const body=new URLSearchParams();body.append(SHARE_ENTRY,JSON.stringify(d));
     let ok=false;try{ok=navigator.sendBeacon&&navigator.sendBeacon(SHARE_URL,body)}catch(e){}
     if(!ok)fetch(SHARE_URL,{method:'POST',mode:'no-cors',body,keepalive:true}).catch(()=>{});
@@ -1081,8 +1082,12 @@ function refresh(){
   S.queue.forEach((q,i)=>paintMini(nl.children[i],q,44));
   $('#perkl').innerHTML=Object.keys(S.perks).filter(k=>k!=='clean').map(k=>`<button class="pk" data-k="${k}" aria-label="${PERKS[k].n}">${icon(k)}${S.perks[k]>1?`<b>${S.perks[k]}</b>`:''}</button>`).join('');
   document.querySelectorAll('.pk').forEach(b=>b.onclick=()=>flashTip(PERKS[b.dataset.k].n+':'+PERKS[b.dataset.k].d));
-  $('#undoN').textContent=S.undo;
-  $('#undoB').disabled=!!tut||S.undo<=0||!S.hist.length||S.over;
+  const kl=$('#keepl'),hn=tut?1:holdN();if(!S.hold)S.hold=[];
+  while(kl.children.length<hn)kl.appendChild(document.createElement('canvas'));
+  while(kl.children.length>hn)kl.lastChild.remove();
+  [...kl.children].forEach((cv,i)=>{const o=S.hold[i];paintMini(cv,o||null,44);if(!o){const c=cv.getContext('2d');c.setLineDash([3,4]);c.lineWidth=1.5;c.strokeStyle='rgba(170,181,216,.45)';c.beginPath();c.arc(22,22-44*.03,44*.3,0,TAU);c.stroke()}});
+  const kb=$('#keepB');kb.classList.toggle('off',!!tut||!!S.over||!!S.kept);
+  kb.classList.toggle('hint',!tut&&!S.over&&!S.kept&&S.cap-S.ring.length<=2&&S.hold.some(o=>o&&(o.t==='p'||o.t==='d'))&&!(S.center&&(S.center.t==='p'||S.center.t==='d')));   // ピンチで彗星をしまっているときは光って知らせる
   if(tut||Date.now()<tipLock)return;
   const c=S.center;
   if(!c||S.over)setTip('');
