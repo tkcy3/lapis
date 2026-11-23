@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.5';
+const VER='0.7.6';
 const CHANGES=[
+  ['0.7.6','2026-11-23',['🎹 星を置く音を、カリンバのような柔らかい音にしました。流れている和音の中で、小さい星ほど高く、大きい星ほど低く鳴ります。彗星はいちばん高く、暗黒彗星は低く']],
   ['0.7.5','2026-11-23',['🌀 重力崩壊も曲に乗せました。拍に合わせて崩れはじめ、曲がゆっくり消えていき、閃光は拍の頭に来ます','📖 チュートリアルの連鎖も、曲のリズムに乗るようにしました']],
   ['0.7.4','2026-11-23',['🎶 実績のお知らせ・章の見出し・流れ星も、音と同じ拍で出るようにしました','👆 置く・KEEP・吸い込む・彗星に変える音も、曲の細かい拍(32分)にそろえました']],
   ['0.7.3','2026-11-23',['⏱ 連鎖は1段目から曲の8分に乗せ、しめくくりの和音・章・加護・実績・新しい星の音も拍にそろえました','💓 ピンチの心音も曲の拍に合わせました(のこり2つは2拍ごと、のこり1つは1拍ごと)','🎼 合体の音がハモるようにしました。2連鎖で2声、3連鎖で3声。4連鎖からは上のきらめきも拍ぴったりに','🔔 3連鎖以上のしめくくりに、次の拍でいまの和音がシャラーンと鳴ります','🎵 置く音も、流れている曲の和音に合わせました']],
@@ -623,6 +624,9 @@ function beatDelay(minSec,div){if(!synced())return minSec;return Math.max(minSec
 // しめくくりの和音: グラスをやさしくなでたような、長く残る響き
 function shimmer(m,when,vol){if(!AC||!SET.sound)return;const t=AC.currentTime+when,f=mtof(m);if(window.__SL)window.__SL.push(['shimmer',m,t]);
   [[1,1,2.8],[2,.25,1.2],[3.01,.08,.6]].forEach(([r,a,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f*r;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol*a,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.05)})}
+// 置く音: カリンバのように柔らかく弾いた音
+function pluck(m,when,vol){if(!AC||!SET.sound)return;const t=AC.currentTime+when,f=mtof(m);if(window.__SL)window.__SL.push(['pluck',m,t]);
+  [[1,1,.55],[2,.28,.16],[3.9,.06,.06]].forEach(([r,a,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f*r;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol*a,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.03)})}
 function clink(m,when=0,vol=.03){if(!AC||!SET.sound)return;const t=AC.currentTime+when,f=mtof(m);if(window.__SL)window.__SL.push(['clink',m,t]);   // __SLはテスト用の記録(ふだんは無い)
   [[1,1],[2.76,.32],[5.4,.1]].forEach(([r,a],j)=>[0,6].forEach((ct,k)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f*r;o.detune.value=ct+(k?j*2:0);
     const d=j?.35/j:1.3,t1=t+k*.012;g.gain.setValueAtTime(.0001,t1);g.gain.exponentialRampToValueAtTime(vol*a*(k?.6:1),t1+.003);g.gain.exponentialRampToValueAtTime(.0001,t1+d);o.connect(g).connect(AC.destination);o.start(t1);o.stop(t1+d+.05)}))}
@@ -630,7 +634,11 @@ function chordLadder(){const pcs=[...new Set((AU.ch||[62,66,69,73]).map(m=>m%12)
 function sfx(k,n=1,w=0){   // w: 鳴らすまでの秒(拍に合わせるとき)
   if(!AC||!SET.sound)return;
   const q32=beatDelay(0,4);   // 操作の音は次の32分音符に寄せる(最大0.12秒)。見た目の反応は即座のまま
-  if(k==='place'){const r=chordTones().find(x=>x>=67)||67;tone(mtof(r),.07,'sine',.07,q32,.85)}   // 置く音は、いまの和音の音に
+  if(k==='place'){   // 置く音: いまの和音の音から、小さい星ほど高く、大きい星ほど低く(約2オクターブ)。彗星はいちばん高く、暗黒彗星は低く
+    const ts=chordTones().filter(x=>x>=62&&x<=88);let m;
+    if(n==='p')m=ts[ts.length-1];else if(n==='d')m=ts[0]-12;else if(n==='m')m=ts[Math.floor(ts.length/2)];
+    else{const v=Math.min(Math.max(+n||1,1),18);m=ts[Math.round((18-v)/17*(ts.length-1))]}
+    pluck(m,q32,.05)}
   else if(k==='fuse'){   // 連鎖が進むほど声部がふえてハモる。メロディは和音の音を上っていく
     const L=chordLadder(),m=L[Math.min(n-1,L.length-1)],v=.024+.003*Math.min(n,6);clink(m,0,v);
     if(n>=2){const h=below(m,3);clink(h,.012,v*.55);if(n>=3)clink(below(h,3),.024,v*.42)}
@@ -704,7 +712,7 @@ async function place(i){
   const o={id:S.nid++,t:c.t,v:c.v};
   const wasFull=S.ring.length>=S.cap,sc0=S.score;
   S.ring.splice(i,0,o);S.center=null;S.moves++;if(S.moves===DUST0+1&&!tut)banner('<small style="color:#c9a2b4">ここから</small><b style="font-size:18px">宇宙のチリが 降り積もりはじめた</b>');if(o.t==='d')S.darkN=(S.darkN||0)+1;
-  disp[o.id]={a,ta:a,r:.2,s:1};syncDisp();sfx('place');vib(8);orb.push({k:'rip',a,t0:performance.now(),dur:750});
+  disp[o.id]={a,ta:a,r:.2,s:1};syncDisp();sfx('place',o.t==='n'?o.v:o.t);vib(8);orb.push({k:'rip',a,t0:performance.now(),dur:750});
   await sleep(150);
   let first=o;
   for(let g=0;g<60;g++){const p=findPlus(S.ring,first);first=null;if(p<0)break;await react(p)}
