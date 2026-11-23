@@ -198,8 +198,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.5.1';
+const VER='0.5.2';
 const CHANGES=[
+  ['0.5.2','2026-11-23',['🎁 加護を見直しました。星を大きくするだけで不利だった「降着」は、次の3つが彗星になる「流れ星」に','🔔 「共鳴軌道」は星の数字を変えず、3連鎖目からの得点が1.5倍(重ねると2倍)になります','⏳ 「時間のゆがみ」は、ゲームオーバーになる瞬間に1度だけ3手前へ戻してくれます','☄ 4連鎖以上のご褒美は、戻す+1から「次のひとつが彗星」に変えました']],
   ['0.5.1','2026-11-23',['🎨 アイコンを新しくしました。青い星のまわりを、色とりどりの星がまわります','🪐 星たちの公転をさらにゆっくり(約3分で1周)にしました','🌠 背景の空を、たまに流れ星が流れます。ときどき人工衛星も。ごくまれに、何かが通りすぎるかも']],
   ['0.5.0','2026-11-23',['🎵 BGMを、遠いパッドとやわらかいエレピのチルな曲にしました','🪐 星を少し小さくして、宇宙の余白と軌道が見えるようにしました。星たちは約1分半で中心を1周します','🥂 合体の音を、グラスを軽く当てたような澄んだ音に。連鎖すると流れている曲の和音で上がっていきます','✨ 連鎖すると軌道を光が走ります。置いたときは軌道に小さな波紋。大きな連鎖は一瞬ためてから弾けます','🌌 銀河(18)を超えると宇宙が膨張し、彗星が少しずつ減ってチリが増えます。20番台がいつまでも続かないようにしました']],
   ['0.4.2','2026-11-23',['☄ 彗星やワームホールはそのままに、200手を過ぎると「宇宙のチリ」が少しずつ降り積もるようにしました。だんだん輪が埋まり、ひと宇宙に終わりが来ます','📖 節目の星(岩の惑星・若い星・巨星・ブラックホール・銀河)に届くと、章が進みます']],
@@ -252,10 +253,10 @@ const PERKS={
   minus:{n:'時空のほころび',d:'ワームホール(－)が出やすくなる',max:3},
   sight:{n:'望遠鏡',d:'NEXTが1つ増える',max:2},
   room:{n:'広い軌道',d:'置ける数が1つ増える',max:3},
-  rewind:{n:'時間のゆがみ',d:'戻すが2回ふえる',max:9},
+  rewind:{n:'時間のゆがみ',d:'ゲームオーバーになる瞬間、1度だけ3手前に戻る',max:2},
   dark:{n:'暗黒物質',d:'何でも合体できる暗黒彗星が出やすくなる',max:2},
-  lift:{n:'降着',d:'出てくる星がときどき1つ大きくなる',max:2},
-  echo:{n:'共鳴軌道',d:'3連鎖以上で、できる星がさらに+1',max:2},
+  shower:{n:'流れ星',d:'次の3つが彗星(＋)になる(すぐ発動)',max:99},
+  echo:{n:'共鳴軌道',d:'3連鎖目からの得点が1.5倍(重ねると2倍)',max:2},
   clean:{n:'太陽風',d:'いちばん小さい星を全部吹き飛ばす(すぐ発動)',max:99}
 };
 function icon(k){
@@ -269,6 +270,7 @@ function icon(k){
     rewind:'<path d="M3 4v6h6"/><path d="M3.6 10A8.5 8.5 0 1 1 6 17.2"/>',
     dark:'<path d="M9 15 L21 22 L15 9 Z" fill="#a58cff" fill-opacity=".45" stroke="none"/><circle cx="9.5" cy="9.5" r="6" fill="#2a2142" stroke="#a58cff" stroke-width="1.4"/><path d="M9.5 7v5M7 9.5h5" stroke="#e3dbff" stroke-width="1.8"/>',
     lift:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+    shower:'<path d="M3 21l8-8" stroke-opacity=".45"/><path d="M6 14l-3 3" stroke-opacity=".3"/><path d="M15 3l1.6 4.4L21 9l-4.4 1.6L15 15l-1.6-4.4L9 9l4.4-1.6z" fill="#ffd9a0" stroke="none"/>',
     echo:'<circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
     clean:'<path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z" fill="currentColor" stroke="none"/>'
   };
@@ -287,6 +289,7 @@ function banner(h){const e=$('#chap');e.innerHTML=h;e.classList.remove('on');voi
 function showChap(k){const c=CHAPS[k-1];banner(`<small>${c[1]}</small><b>${c[2]}</b>`);sfx('chord');vib([20,60,20])}
 function gen(){
   const P=S.perks;
+  if(S.forceP>0){S.forceP--;S.gsp=0;return plusPiece()}   // 加護「流れ星」の残り
   S.gsp++;
   const ex=Math.max(0,S.maxT-17);   // 銀河(18)を超えると宇宙が膨張: 彗星が減り、チリが増える
   if(S.gsp>=5+Math.min(3,ex)){S.gsp=0;return plusPiece()}
@@ -344,7 +347,6 @@ function* fuseGen(R,p,perks,nid){
     c=o>=c?o+2:c+1;mid.v=c;rm(R,[pr.A,pr.B]);
     yield{step,cons:[pr.A,pr.B],mid,gain};
   }
-  if(perks.echo&&step>=3){mid.v+=perks.echo;yield{step,cons:[],mid,gain:0,echo:true}}
 }
 function findPlus(R,first){
   if(first&&first.t!=='n'){const k=R.indexOf(first);if(canFuse(R,k))return k}
@@ -458,7 +460,8 @@ function draw(t){
   const n=S.ring.length,{cx,cy,R,pr,cr}=geo();
   NOW=t;const dt=lastT?Math.min(100,t-lastT):0;lastT=t;
   const cp=COL?Math.min(1,(t-COL)/((RM0||RM_FORCE)?600:COL_MS)):0,cin=cp*cp*cp;   // 重力崩壊: 回転が速くなり、星が中心へ吸い込まれる
-  if(!pdown&&!RM_FORCE)ROT=(ROT+dt*TAU/180000*(1+60*cp*cp))%TAU;   // ふだんは約3分で1周(ゆっくりなので動きを減らす設定でも回す)、押している間は止める
+  if(!pdown&&!RM_FORCE)ROT=(ROT+dt*TAU/180000*(1+60*cp*cp))%TAU;
+  if(REW){const k=(t-REW)/900;if(k>=1||k<0)REW=0;else ROT=(ROT-dt*TAU/700*(1-k)*(1-k)+TAU)%TAU}   // 巻き戻るときは、環がすっと逆に回る   // ふだんは約3分で1周(ゆっくりなので動きを減らす設定でも回す)、押している間は止める
   const P=(a,rr)=>({x:cx+Math.cos(a+ROT)*rr,y:cy+Math.sin(a+ROT)*rr});
   c.globalAlpha=1-cp;
   // 軌道
@@ -631,7 +634,7 @@ async function place(i){
   for(let g=0;g<60;g++){const p=findPlus(S.ring,first);first=null;if(p<0)break;await react(p)}
   if(tut){busy=false;refresh();tutNext();return}
   S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});
-  if(S.ring.length>S.cap){busy=false;gameOver();return}
+  if(S.ring.length>S.cap){busy=false;if(lastRewind())return;gameOver();return}
   if(S.ring.length>=S.cap-1)vib(30);
   checkChap();
   if(S.maxT>=S.mile){S.mile+=4;S.pend=pickPerks()}
@@ -655,16 +658,16 @@ async function react(p){
     const ps=posOf(ev.mid.id);burst(ps.x,ps.y,gemColor(ev.mid.v),ev.step>1?11:7);
     orb.push({k:'wave',a:md.a,t0:performance.now(),dur:650,amp:.28});
     if(ev.step>=2)orb.push({k:'run',a:md.a,t0:performance.now(),dur:1000,amp:Math.min(.5,.2+.07*ev.step)});
-    S.score+=ev.gain;bumpScore();
+    let gain=ev.gain;if(S.perks.echo&&ev.step>=3&&!tut){gain=Math.round(gain*(1+.5*S.perks.echo));if(ev.step===3)fx.push({txt:'共鳴 ×'+(1+.5*S.perks.echo),t0:performance.now(),dur:1000,dy:.1,s:.042,col:'#d8bd6a'})}
+    S.score+=gain;bumpScore();
     if(ev.step>=2&&!ev.echo){fx=fx.filter(f=>!f.ch);fx.push({ch:1,txt:ev.step+'連鎖',t0:performance.now(),dur:900,dy:-.02,s:.052+Math.min(ev.step,6)*.005})}   // 前の表示は消して、いまの連鎖数だけ見せる
-    if(ev.echo)fx.push({txt:'共鳴',t0:performance.now(),dur:800,dy:.08,s:.05,col:'#d8bd6a'});
     sfx('fuse',ev.step);vib(ev.step>1?18:10);
     discover(ev.mid.v);
     S.chainMax=Math.max(S.chainMax,ev.step);
     await sleep(ev.step===1?170:230);
     last=ev;
   }
-  if(last&&last.step>=4&&!tut){S.undo++;fx.push({txt:'戻す +1',t0:performance.now(),dur:1100,dy:.16,s:.045,col:'#6f9bd0'})}
+  if(last&&last.step>=4&&!tut&&S.queue.length&&S.queue[0].t!=='p'&&S.queue[0].t!=='d'){S.queue[0]={t:'p'};fx.push({txt:'次は彗星',t0:performance.now(),dur:1100,dy:.16,s:.045,col:'#ffb39a'})}   // 4連鎖以上のご褒美
 }
 function discover(v){
   if(tut)return;
@@ -694,7 +697,8 @@ async function applyPerk(k){
   close();
   S.perks[k]=(S.perks[k]||0)+1;S.pend=null;(S.picks=S.picks||[]).push(k+'@'+(S.mile-4));
   if(k==='room')S.cap++;
-  if(k==='rewind')S.undo+=2;
+  if(k==='shower'){let left=3;S.queue=S.queue.map(q=>{if(left<=0)return q;left--;return q.t==='p'||q.t==='d'?q:{t:'p'}});S.forceP=(S.forceP||0)+left;
+    fx.push({txt:'流れ星',t0:performance.now(),dur:1300,dy:.16,s:.045,col:'#ffd9a0'});try{[0,350,800].forEach(d=>setTimeout(()=>flySpawn('star'),d))}catch(e){}}
   if(k==='sight')S.queue.push(gen());
   if(k==='clean'){
     busy=true;
@@ -717,6 +721,16 @@ async function applyPerk(k){
 }
 
 /* ---------- ゲームオーバー ---------- */
+let REW=0;   // 時間が巻き戻るときの、環の逆回転
+function lastRewind(){
+  const left=(S.perks.rewind||0)-(S.rwUsed||0);if(tut||left<=0||!S.hist.length)return false;
+  const idx=Math.max(0,S.hist.length-3),h=S.hist[idx];
+  const keep={hist:S.hist.slice(0,idx),undo:S.undo,undoUsed:S.undoUsed||0,ms:S.ms,last:S.last,rwUsed:(S.rwUsed||0)+1,perks:S.perks,picks:S.picks,mile:S.mile,chap:S.chap,newFound:S.newFound,chainMax:S.chainMax,maxT:S.maxT};
+  S=Object.assign(JSON.parse(h),keep);S.pend=null;
+  disp={};ghosts=[];syncDisp();cS=.3;REW=performance.now();
+  banner('<small style="color:#9fc0f0">時間のゆがみ</small><b>3手前に戻った</b>');sfx('undo');sfx('chord');vib([30,40,30]);
+  save();refresh();return true;
+}
 function gameOver(ev){
   S.over=true;
   const nb=S.score>ST.best;
