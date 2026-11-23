@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.6';
+const VER='0.7.7';
 const CHANGES=[
+  ['0.7.7','2026-11-23',['⚖ やり込んでも終わりが来るようにしました。加護は6・10・14・18の4回まで(銀河を超えたら、もう出ません)','🎁 重ねがけの上限を下げました。広い軌道は1回まで、時空のほころびは2回まで、共鳴軌道は1回(1.5倍)まで','🌫 38を超えると、チリに「古い宇宙のかけら」(ばらばらの小さな数)がまざりはじめ、だんだん増えていきます']],
   ['0.7.6','2026-11-23',['🎹 星を置く音を、カリンバのような柔らかい音にしました。流れている和音の中で、小さい星ほど高く、大きい星ほど低く鳴ります。彗星はいちばん高く、暗黒彗星は低く']],
   ['0.7.5','2026-11-23',['🌀 重力崩壊も曲に乗せました。拍に合わせて崩れはじめ、曲がゆっくり消えていき、閃光は拍の頭に来ます','📖 チュートリアルの連鎖も、曲のリズムに乗るようにしました']],
   ['0.7.4','2026-11-23',['🎶 実績のお知らせ・章の見出し・流れ星も、音と同じ拍で出るようにしました','👆 置く・KEEP・吸い込む・彗星に変える音も、曲の細かい拍(32分)にそろえました']],
@@ -279,13 +280,13 @@ function rnd(){S.rng=(S.rng+0x6D2B79F5)|0;let t=S.rng;t=Math.imul(t^t>>>15,t|1);
 /* ---------- 加護 ---------- */
 const PERKS={
   plus:{n:'流星群',d:'彗星(＋)が出やすくなる',max:3},
-  minus:{n:'時空のほころび',d:'ワームホール(－)が出やすくなる',max:3},
+  minus:{n:'時空のほころび',d:'ワームホール(－)が出やすくなる',max:2},
   sight:{n:'望遠鏡',d:'NEXTが1つ増える',max:2},
-  room:{n:'広い軌道',d:'置ける数が1つ増える',max:3},
+  room:{n:'広い軌道',d:'置ける数が1つ増える',max:1},
   rewind:{n:'時空のポケット',d:'KEEPの枠が1つふえる(2つまでしまえる)',max:1},
   dark:{n:'暗黒物質',d:'何でも合体できる暗黒彗星が出やすくなる',max:2},
   shower:{n:'流れ星',d:'次の3つが彗星(＋)になる(すぐ発動)',max:99},
-  echo:{n:'共鳴軌道',d:'3連鎖目からの得点が1.5倍(重ねると2倍)',max:2},
+  echo:{n:'共鳴軌道',d:'3連鎖目からの得点が1.5倍',max:1},
   clean:{n:'太陽風',d:'いちばん小さい星を全部吹き飛ばす(すぐ発動)',max:99}
 };
 function icon(k){
@@ -332,7 +333,7 @@ function gen(){
   const lows=vals.filter(v=>v<low);
   let v;
   if(lows.length&&rnd()<1/vals.length)v=lows[Math.floor(rnd()*lows.length)];
-  else v=(S.moves>DUST0&&rnd()<Math.min(.25+.03*ex,.4,(S.moves-DUST0)/2000+.03*ex))?1:low+Math.floor(rnd()*3);
+  else v=(S.moves>DUST0&&rnd()<Math.min(.25+.03*ex,.4,(S.moves-DUST0)/2000+.03*ex))?(ex>20&&rnd()<(ex-20)/80?1+Math.floor(rnd()*(low-1)):1):low+Math.floor(rnd()*3);   // 38を超えると、チリに古い宇宙のかけら(ばらばらの小さな数)がまざりはじめる
   if(P.lift&&rnd()<.15*P.lift)v++;
   return{t:'n',v};
 }
@@ -723,7 +724,8 @@ async function place(i){
   achScan();
   if(S.ring.length>=S.cap-1)vib(30);
   checkChap();
-  if(S.maxT>=S.mile){S.mile+=4;S.pend=pickPerks()}
+  if(S.maxT>=38&&!S.junkB){S.junkB=1;const d=beatDelay(.3,.5);setTimeout(()=>banner('<small style="color:#c9a2b4">宇宙が年老いて</small><b style="font-size:18px">古いかけらが まざりはじめた</b>'),d*1000)}
+  if(S.maxT>=S.mile&&S.mile<=18){S.mile+=4;S.pend=pickPerks()}   // 加護は銀河(18)まで
   flushChap();
   S.center=S.queue.shift();S.queue.push(gen());
   if(S.center.t==='m'&&!S.ring.length)S.center={t:'p'};
@@ -786,7 +788,7 @@ function pickPerks(){
 }
 function showPerks(){
   sfx('perk');
-  open(`<p class="small">${bodyName(S.mile-4)}(${S.mile-4}) に到達</p><h2>加護をひとつ</h2>`+S.pend.map(k=>`<button class="perk" data-k="${k}">${icon(k)}<div><b>${PERKS[k].n}${S.perks[k]?' +'+(S.perks[k]+1):''}</b><span>${PERKS[k].d}</span></div></button>`).join(''));
+  open(`<p class="small">${bodyName(S.mile-4)}(${S.mile-4}) に到達</p><h2>${S.mile-4>=18?'最後の加護':'加護をひとつ'}</h2>`+S.pend.map(k=>`<button class="perk" data-k="${k}">${icon(k)}<div><b>${PERKS[k].n}${S.perks[k]?' +'+(S.perks[k]+1):''}</b><span>${PERKS[k].d}</span></div></button>`).join(''));
   document.querySelectorAll('.perk').forEach(b=>b.onclick=()=>applyPerk(b.dataset.k));
 }
 async function applyPerk(k){
@@ -810,7 +812,7 @@ async function applyPerk(k){
     busy=false;
   }
   checkChap();
-  if(S.maxT>=S.mile){S.mile+=4;S.pend=pickPerks()}
+  if(S.maxT>=S.mile&&S.mile<=18){S.mile+=4;S.pend=pickPerks()}   // 加護は銀河(18)まで
   flushChap();
   save();refresh();
   if(S.pend)showPerks();
@@ -950,7 +952,7 @@ function showHelp(back,inTut){
     [['d'],'暗黒彗星は、どんな2つでも合体'],
     [['gauge'],'外側の線がいっぱいになったら、おしまい'],
     [['eye'],'押したままにすると、置いた結果が先に見える'],
-    [['perk'],'大きな星ができると、加護を1つ選べる'],
+    [['perk'],'大きな星ができると、加護を1つ選べる(銀河まで4回)'],
     [['keep'],'右下のKEEPに、いまの星を1つしまえる。もう一度タップで入れかえ(1手に1回)']
   ];
   const pic=x=>x==='→'?'<i>→</i>':x==='eye'?SVG.eye:x==='undo'?SVG.undo:x==='keep'?SVG.keep:x==='perk'?icon('plus'):`<canvas data-p="${x}"></canvas>`;
@@ -1182,7 +1184,7 @@ const ACHS=[
   {id:'dark',ic:'🌑',n:'暗黒の力',d:'暗黒彗星で合体する'},
   {id:'echo',ic:'🔔',n:'共鳴する宇宙',d:'共鳴軌道で得点をふやす'},
   {id:'nextc',ic:'☄️',n:'彗星のおくりもの',d:'4連鎖のご褒美で彗星をもらう'},
-  {id:'perk5',ic:'🎁',n:'加護に包まれて',d:'1ゲームで加護を5つ受けとる'},
+  {id:'perk5',ic:'🎁',n:'加護に包まれて',d:'1ゲームで加護を4つすべて受けとる'},
   {id:'escape',ic:'💓',n:'重力からの脱出',d:'のこり1つから、のこり5つまで取りもどす'},
   {id:'g1',ic:'🌱',n:'はじめての宇宙',d:'1ゲームを終える'},
   {id:'g10x',ic:'🔭',n:'星を見る人',d:'10ゲーム遊ぶ'},
@@ -1217,7 +1219,7 @@ function achScan(){
   [[1000,'p1k'],[5000,'p5k'],[10000,'p10k'],[30000,'p30k']].forEach(([v,id])=>{if(p>=v)achGive(id)});
   [[100,'m100'],[200,'m200'],[300,'m300'],[500,'m500']].forEach(([v,id])=>{if(mv>=v)achGive(id)});
   const f=new Set(ST.found.concat([1,2,3])).size;if(f>=10)achGive('g10');if([...Array(18)].every((_,i)=>i<3||ST.found.includes(i+1)))achGive('g18');
-  if((S.picks||[]).length>=5)achGive('perk5');
+  if((S.picks||[]).length>=4)achGive('perk5');
   if(m>=18&&mv<=300)achGive('fast');if(m>=18&&!(S.keepN>0))achGive('nokeep');
   if(rem<=1&&!S.over)S.pinch=1;if(S.pinch&&rem>=5){S.pinch=0;achGive('escape')}
   if(mv>20&&S.ring.length<=1)achGive('void');
