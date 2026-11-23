@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.8';
+const VER='0.7.9';
 const CHANGES=[
+  ['0.7.9','2026-11-23',['✨ 合体した直後に星がチカッと点滅して見えていたのを直しました。拍の瞬間までは彗星(や前の数)のまま見せ、吸い寄せられる星はちょうど拍で重なってすっと消え、星くずは星の縁から外へ散るようにしました']],
   ['0.7.8','2026-11-23',['🎵 はじめて遊ぶときのBGMの音量を「中」にしました']],
   ['0.7.7','2026-11-23',['⚖ やり込んでも終わりが来るようにしました。加護は6・10・14・18の4回まで(銀河を超えたら、もう出ません)','🎁 重ねがけの上限を下げました。広い軌道は1回まで、時空のほころびは2回まで、共鳴軌道は1回(1.5倍)まで','🌫 38を超えると、チリに「古い宇宙のかけら」(ばらばらの小さな数)がまざりはじめ、だんだん増えていきます']],
   ['0.7.6','2026-11-23',['🎹 星を置く音を、カリンバのような柔らかい音にしました。流れている和音の中で、小さい星ほど高く、大きい星ほど低く鳴ります。彗星はいちばん高く、暗黒彗星は低く']],
@@ -548,7 +549,7 @@ function draw(t){
     if(COL){c.globalAlpha=1;drawPiece(c,o,x,y,pr*d.s*(1-cin*.85),d.a+ROT-Math.PI/2);continue}
     if(gp&&sim&&sim.cons.has(o.id)){c.lineWidth=2;c.strokeStyle=`rgba(255,255,255,${.45+.35*Math.sin(t/110)})`;c.beginPath();c.arc(x,y,pr*1.2,0,TAU);c.stroke()}
     if(hover&&hover.k==='a'&&!busy&&S.ring[hover.i]===o){c.lineWidth=2;c.strokeStyle='#6f9bd0';c.beginPath();c.arc(x,y,pr*1.22,0,TAU);c.stroke()}
-    drawPiece(c,o,x,y,pr*d.s,d.a+ROT-Math.PI/2);
+    drawPiece(c,d.pre||o,x,y,pr*d.s,d.a+ROT-Math.PI/2);
   }
   if(gp){
     c.globalAlpha=.5;drawPiece(c,S.center,gp.x,gp.y,pr*.85,gp.a+ROT-Math.PI/2);c.globalAlpha=1;
@@ -559,8 +560,8 @@ function draw(t){
   const now=performance.now();
   ghosts=ghosts.filter(g=>{
     let k=(now-g.t0)/g.dur;if(k>=1)return false;k=1-(1-k)*(1-k);
-    const a=g.a0+adiff(g.a1,g.a0)*k,rr=R*(g.r0+(g.r1-g.r0)*k);
-    const q=P(a,rr);c.globalAlpha=1-k*.5;drawPiece(c,g.o,q.x,q.y,pr*(1-k*.45),a+ROT-Math.PI/2);c.globalAlpha=1;return true;
+    const a1=g.to?g.to.a:g.a1,a=g.a0+adiff(a1,g.a0)*k,rr=R*(g.r0+(g.r1-g.r0)*k);
+    const q=P(a,rr);c.globalAlpha=1-k*.85;drawPiece(c,g.o,q.x,q.y,pr*(1-k*.45),a+ROT-Math.PI/2);c.globalAlpha=1;return true;
   });
   // 中央
   c.globalAlpha=1;
@@ -608,7 +609,7 @@ const RM0=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matche
 let RM_FORCE=0;
 function frame(t){requestAnimationFrame(frame);try{flyStep()}catch(e){}try{dangerStep()}catch(e){}try{if(onTitle)drawTitle(t);else draw(t)}catch(e){if(!errLogged){errLogged=true;console.error(e)}}}
 function posOf(id){const d=disp[id],{cx,cy,R}=geo();return d?{x:cx+Math.cos(d.a+ROT)*R*d.r,y:cy+Math.sin(d.a+ROT)*R*d.r}:{x:cx,y:cy}}
-function burst(x,y,col,n=10){n=Math.min(n,12);for(let i=0;i<n;i++){const a=Math.random()*TAU,sp=1.4+Math.random()*2.8;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1,s:1.2+Math.random()*2,c:col})}}
+function burst(x,y,col,n=10,rad=0){n=Math.min(n,12);for(let i=0;i<n;i++){const a=Math.random()*TAU,sp=1.4+Math.random()*2.8;parts.push({x:x+Math.cos(a)*rad,y:y+Math.sin(a)*rad,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:1,s:1.2+Math.random()*2,c:col})}}
 
 /* ---------- 音・振動 ---------- */
 let AC=null;
@@ -736,16 +737,19 @@ async function place(i){
 // 連鎖をBGMのリズムに乗せる: 合体の瞬間を曲の8分の区切りに合わせて待つ。曲が鳴っていなければ決まった時間だけ待つ
 function beatWait(minMs,div){if(!synced())return sleep(minMs+60);return sleep(beatDelay(minMs/1000,div)*1000)}
 async function react(p){
-  let last=null;const pl=S.ring[p],pa=disp[pl.id]?disp[pl.id].a:0;
+  let last=null,shown=null;const pl=S.ring[p],pa=disp[pl.id]?disp[pl.id].a:0;
   for(const ev of fuseGen(S.ring,p,S.perks,()=>S.nid++)){
     let md=disp[ev.mid.id];
     if(!md)md=disp[ev.mid.id]={a:pa,ta:pa,r:1,s:1};
+    md.pre=ev.from?{id:ev.mid.id,t:ev.from.t}:{id:ev.mid.id,t:'n',v:shown};   // 合体の瞬間までは、前の姿(彗星・ひとつ前の数)のまま見せる
     if(ev.from)delete disp[ev.from.id];
-    for(const o of ev.cons){const d=disp[o.id];if(d)ghosts.push({o:{t:o.t,v:o.v},a0:d.a,a1:md.a,r0:d.r,r1:1,t0:performance.now(),dur:300});delete disp[o.id]}   // 吸い寄せられる動きはゆっくり
+    const ms=(ev.cons.length?290:80)+(ev.step===4?110:0),wait=synced()?beatDelay(ms/1000,1)*1000:ms+60;   // 1段目から8分で刻む(4段目だけ1拍ためる)
+    for(const o of ev.cons){const d=disp[o.id];if(d)ghosts.push({o:{t:o.t,v:o.v},a0:d.a,a1:md.a,to:md,r0:d.r,r1:1,t0:performance.now(),dur:Math.max(300,wait)});delete disp[o.id]}   // 吸い寄せられて、ちょうど拍の瞬間に重なる
     syncDisp();
-    await beatWait((ev.cons.length?290:80)+(ev.step===4?110:0),1);   // 1段目から8分で刻む   // 吸い寄せ終わってから、次の拍で合体(4段目だけ1拍ためて、そこから先はまた8分で刻む)
+    await sleep(wait);
+    delete md.pre;shown=ev.mid.v;
     md.s=ev.echo?1.4:1.24;
-    const ps=posOf(ev.mid.id);burst(ps.x,ps.y,gemColor(ev.mid.v),ev.step>1?11:7);
+    const ps=posOf(ev.mid.id);burst(ps.x,ps.y,gemColor(ev.mid.v),ev.step>1?11:7,geo().pr*1.15);   // 星くずは星の縁から外へ(星の顔を隠さない)
     orb.push({k:'wave',a:md.a,t0:performance.now(),dur:650,amp:.28});
     if(ev.step>=2)orb.push({k:'run',a:md.a,t0:performance.now(),dur:1000,amp:Math.min(.5,.2+.07*ev.step)});
     let gain=ev.gain;if(S.perks.echo&&ev.step>=3&&!tut){achGive('echo');gain=Math.round(gain*(1+.5*S.perks.echo));if(ev.step===3)fx.push({txt:'共鳴 ×'+(1+.5*S.perks.echo),t0:performance.now(),dur:1000,dy:.1,s:.042,col:'#d8bd6a'})}
