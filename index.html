@@ -199,8 +199,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.5.3';
+const VER='0.5.4';
 const CHANGES=[
+  ['0.5.4','2026-11-23',['☄ 彗星(＋)の出かたを本家Atomasに近づけました。少なくとも5手に1回はそのままに、それ以外で出る確率を下げました','⏸ 環で出番を待っている彗星が2つ以上あるあいだは、新しい彗星を出さないようにしました(序盤に彗星がたまりすぎない)','🌀 ワームホール(－)は、ほぼ20手ごとに来るようにしました。始まってすぐには来ません','🪐 そのぶん、置ける数を18→19に増やしました(1プレイの長さはほぼ同じ)']],
   ['0.5.3','2026-11-23',['🪐 星たちの公転を、もっとゆっくり(約6分で1周)にしました','📋 更新内容の見せ方を、KROPKI・Dungeon Chainとそろえました(最新だけ開いて、前の分は日付ごとにたたむ)']],
   ['0.5.2','2026-11-23',['🎁 加護を見直しました。星を大きくするだけで不利だった「降着」は、次の3つが彗星になる「流れ星」に','🔔 「共鳴軌道」は星の数字を変えず、3連鎖目からの得点が1.5倍(重ねると2倍)になります','⏳ 「時間のゆがみ」は、ゲームオーバーになる瞬間に1度だけ3手前へ戻してくれます','☄ 4連鎖以上のご褒美は、戻す+1から「次のひとつが彗星」に変えました']],
   ['0.5.1','2026-11-23',['🎨 アイコンを新しくしました。青い星のまわりを、色とりどりの星がまわります','🪐 星たちの公転をさらにゆっくり(約3分で1周)にしました','🌠 背景の空を、たまに流れ星が流れます。ときどき人工衛星も。ごくまれに、何かが通りすぎるかも']],
@@ -280,7 +281,7 @@ function icon(k){
 }
 
 /* ---------- 状態 ---------- */
-function blank(){return{ring:[],center:null,queue:[],score:0,moves:0,gsp:0,rng:(Date.now()^Math.floor(Math.random()*1e9))|0,perks:{},cap:18,undo:2,hist:[],maxT:3,mile:6,pend:null,over:false,nid:1,chainMax:0,picks:[],undoUsed:0,minusN:0,darkN:0,ms:0,last:0,chap:0}}
+function blank(){return{ring:[],center:null,queue:[],score:0,moves:0,gsp:0,rng:(Date.now()^Math.floor(Math.random()*1e9))|0,perks:{},cap:19,undo:2,hist:[],maxT:3,mile:6,gm:0,gmN:20,pend:null,over:false,nid:1,chainMax:0,picks:[],undoUsed:0,minusN:0,darkN:0,ms:0,last:0,chap:0}}
 function plusPiece(){const P=S.perks;const dk=P.dark?P.dark/30:(S.score>=750?1/90:0);return rnd()<dk?{t:'d'}:{t:'p'}}
 const DUST0=200;
 const CHAPS=[[5,'第一章','惑星の誕生'],[10,'第二章','星のめざめ'],[13,'第三章','星の一生'],[17,'第四章','重力の果て'],[18,'終章','銀河']];
@@ -292,12 +293,13 @@ function showChap(k){const c=CHAPS[k-1];banner(`<small>${c[1]}</small><b>${c[2]}
 function gen(){
   const P=S.perks;
   if(S.forceP>0){S.forceP--;S.gsp=0;return plusPiece()}   // 加護「流れ星」の残り
-  S.gsp++;
+  S.gsp++;S.gm=(S.gm||0)+1;
   const ex=Math.max(0,S.maxT-17);   // 銀河(18)を超えると宇宙が膨張: 彗星が減り、チリが増える
-  if(S.gsp>=5+Math.min(3,ex)){S.gsp=0;return plusPiece()}
-  const pm=.05+.03*(P.minus||0),pp=Math.max(.09,.17-.02*ex)+.04*(P.plus||0),r=rnd();
-  if(r<pm)return{t:'m'};
-  if(r<pm+pp){S.gsp=0;return plusPiece()}
+  const idl=S.ring.filter(o=>o.t==='p'||o.t==='d').length;   // 環で出番を待っている彗星の数。2つ以上あるあいだは新しい彗星を出さない
+  if(idl<2&&S.gsp>=5+Math.min(3,ex)){S.gsp=0;return plusPiece()}   // 彗星は少なくとも5手に1回(本家と同じ)
+  if(S.gm>=(S.gmN||20)-3*(P.minus||0)){S.gm=0;S.gmN=18+Math.floor(rnd()*5);return{t:'m'}}   // ワームホールはほぼ20手ごと(本家と同じ)。序盤のすぐには来ない
+  const pp=idl>=2?0:Math.max(.05,.10-.02*ex)+.04*(P.plus||0);
+  if(rnd()<pp){S.gsp=0;return plusPiece()}
   const low=1+Math.floor(S.moves/40);
   const vals=[...new Set(S.ring.filter(o=>o.t==='n').map(o=>o.v))];
   const lows=vals.filter(v=>v<low);
