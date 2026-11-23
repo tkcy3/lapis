@@ -211,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.7.2';
+const VER='0.7.3';
 const CHANGES=[
+  ['0.7.3','2026-11-23',['⏱ 連鎖は1段目から曲の8分に乗せ、しめくくりの和音・章・加護・実績・新しい星の音も拍にそろえました','💓 ピンチの心音も曲の拍に合わせました(のこり2つは2拍ごと、のこり1つは1拍ごと)','🎼 合体の音がハモるようにしました。2連鎖で2声、3連鎖で3声。4連鎖からは上のきらめきも拍ぴったりに','🔔 3連鎖以上のしめくくりに、次の拍でいまの和音がシャラーンと鳴ります','🎵 置く音も、流れている曲の和音に合わせました']],
   ['0.7.2','2026-11-23',['🎶 連鎖がBGMのリズムに乗るようにしました。合体の音が曲の拍に合わせて鳴ります','🌙 星が吸い寄せられる動きと、位置に収まる動きを、少しゆったりにしました(置いたときの反応の速さはそのまま)']],
   ['0.7.1','2026-11-23',['🛠 「すべて初期化」をしても、途中のゲームと点数が残ってしまうことがあったのを直しました','🛠 ゲーム中に「記録のリセット」をしたら、タイトルに戻るようにしました']],
   ['0.7.0','2026-11-23',['🏆 実績を49個つくりました(うち10個はシークレット)。タイトルとメニューの「実績」から見られます。これまでの記録で取れていたものは、はじめに自動で付きます']],
@@ -311,7 +312,7 @@ function chapOf(v){let k=0;CHAPS.forEach((c,i)=>{if(v>=c[0])k=i+1});return k}
 function checkChap(){if(tut)return;const k=chapOf(S.maxT);if(S.chap==null){S.chap=k;return}if(k>S.chap){S.chap=k;chapQ=k}}
 let chapQ=0;function flushChap(){if(chapQ&&!S.pend&&!S.over){const k=chapQ;chapQ=0;setTimeout(()=>showChap(k),250)}}
 function banner(h){const e=$('#chap');e.innerHTML=h;e.classList.remove('on');void e.offsetWidth;e.classList.add('on')}
-function showChap(k){const c=CHAPS[k-1];banner(`<small>${c[1]}</small><b>${c[2]}</b>`);sfx('chord');vib([20,60,20])}
+function showChap(k){const c=CHAPS[k-1];banner(`<small>${c[1]}</small><b>${c[2]}</b>`);sfx('chapter');vib([20,60,20])}
 function gen(){
   const P=S.perks;
   if(S.forceP>0){S.forceP--;S.gsp=0;return plusPiece()}   // 加護「流れ星」の残り
@@ -474,13 +475,18 @@ function paintMini(el,o,px){const d=Math.min(window.devicePixelRatio||1,3);el.wi
 // ---------- 危機: のこり2つで重力が強まり、のこり1つでさらに強く ----------
 let DZ=0;const HB={next:0,beat:0,pulse:0,op:-1};
 function dangerLv(){if(onTitle||!S||S.over||COL||tut)return 0;const rem=S.cap-S.ring.length;return rem<=1?2:rem<=2?1:0}
-function heartbeat(lv){if(!AC||!SET.sound)return;const v=lv===2?1:.7;   // ドクン、ドクン(低い音と、スマホでも聞こえる少し高い音)
-  [[0,1],[.2,.6]].forEach(([w,a])=>{tone(62,.2,'sine',.26*v*a,w,.65);tone(124,.12,'sine',.07*v*a,w,.6)})}
+function heartbeat(lv,when=0,gap=.2){if(!AC||!SET.sound)return;if(window.__SL)window.__SL.push(['heart',lv,AC.currentTime+when]);const v=lv===2?1:.7;   // ドクン、ドクン(低い音と、スマホでも聞こえる少し高い音)
+  [[0,1],[gap,.6]].forEach(([w,a])=>{tone(62,.2,'sine',.26*v*a,when+w,.65);tone(124,.12,'sine',.07*v*a,when+w,.6)})}
 function bgmMuffle(lv){if(!AC||!AU.warm)return;const f=lv===2?900:lv===1?1700:5200;if(AU.muf!==f){AU.warm.frequency.setTargetAtTime(f,AC.currentTime,.5);AU.muf=f}}   // 危ないときは曲がこもって遠くなる
 function dangerStep(){
   const lv=dangerLv(),now=performance.now();DZ+=((lv===2?1:lv===1?.55:0)-DZ)*.04;if(DZ<.003)DZ=0;
-  const per=lv===2?1000:1450;
-  if(lv){if(!HB.next)HB.next=now+120;if(now>=HB.next){HB.beat=now;HB.next=now+per;heartbeat(lv)}}else HB.next=0;
+  let per=lv===2?1000:1450;
+  if(lv&&synced()){   // 曲が鳴っていれば拍に合わせる: のこり2つは2拍ごと、のこり1つは1拍ごと。「ドクン」の2つ目は16分あと
+    const st=lv===2?.5:.25;per=BGM_STEP/st*1000;
+    if(!HB.ac||HB.ac<AC.currentTime-.05)HB.ac=beatAt(.05,st);
+    if(HB.ac-AC.currentTime<.12){const w=HB.ac-AC.currentTime;heartbeat(lv,w,BGM_STEP/2);HB.pend=now+w*1000;HB.ac=beatAt(w+.05,st)}
+    if(HB.pend&&now>=HB.pend){HB.beat=HB.pend;HB.pend=0}HB.next=0;
+  }else if(lv){HB.ac=0;if(!HB.next)HB.next=now+120;if(now>=HB.next){HB.beat=now;HB.next=now+per;heartbeat(lv)}}else{HB.next=0;HB.ac=0;HB.pend=0}
   const ph=HB.beat?(now-HB.beat)/per:9;HB.pulse=lv?Math.max(Math.exp(-ph*8),ph>.2?.7*Math.exp(-(ph-.2)*8):0):0;
   const op=+(DZ*(.5+.5*HB.pulse)).toFixed(3);if(op!==HB.op){$('#warn').style.opacity=op;HB.op=op}
   bgmMuffle(lv);
@@ -605,26 +611,44 @@ function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)
 function tone(f,d,type='sine',vol=.12,when=0,slide=0){if(!AC||!SET.sound)return;vol*=.55;const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(f*slide,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.03)}
 const SC=[523,587,659,784,880,1047,1175,1319,1568,1760,2093];
 // グラスの音: 少しずれた2つのグラスが触れ合う、澄んだ短い響き(倍音は鐘のように 1 : 2.76 : 5.4)
-function clink(m,when=0,vol=.03){if(!AC||!SET.sound)return;const t=AC.currentTime+when,f=mtof(m);
+// いま流れている和音の音(全オクターブ)。ハモリと、しめくくりの和音に使う
+function chordTones(){const pcs=[...new Set((AU.ch||[62,66,69,73]).map(m=>m%12))],out=[];for(let m=48;m<=110;m++)if(pcs.includes(m%12))out.push(m);return out}
+function below(m,gap){const t=chordTones().filter(x=>x<=m-gap);return t.length?t[t.length-1]:m-12}   // mより少なくとも gap 半音下の和音の音
+// 次の拍の区切りまでの秒(曲が鳴っていなければ minSec)。div=1で8分、2で16分
+function synced(){return !!(AC&&AU.playing&&SET.bgm&&AC.state==='running')}
+function beatAt(minSec,div){const g=BGM_STEP/div,now=AC.currentTime,base=div<1?AU.next-(AU.step%Math.round(1/div))*BGM_STEP:AU.next;return base+Math.ceil((now+minSec-base)/g)*g}   // 次の区切りの時刻(曲の時計)
+function beatDelay(minSec,div){if(!synced())return minSec;return Math.max(minSec,beatAt(minSec,div)-AC.currentTime)}
+// しめくくりの和音: グラスをやさしくなでたような、長く残る響き
+function shimmer(m,when,vol){if(!AC||!SET.sound)return;const t=AC.currentTime+when,f=mtof(m);if(window.__SL)window.__SL.push(['shimmer',m,t]);
+  [[1,1,2.8],[2,.25,1.2],[3.01,.08,.6]].forEach(([r,a,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f*r;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol*a,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.05)})}
+function clink(m,when=0,vol=.03){if(!AC||!SET.sound)return;const t=AC.currentTime+when,f=mtof(m);if(window.__SL)window.__SL.push(['clink',m,t]);   // __SLはテスト用の記録(ふだんは無い)
   [[1,1],[2.76,.32],[5.4,.1]].forEach(([r,a],j)=>[0,6].forEach((ct,k)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f*r;o.detune.value=ct+(k?j*2:0);
     const d=j?.35/j:1.3,t1=t+k*.012;g.gain.setValueAtTime(.0001,t1);g.gain.exponentialRampToValueAtTime(vol*a*(k?.6:1),t1+.003);g.gain.exponentialRampToValueAtTime(.0001,t1+d);o.connect(g).connect(AC.destination);o.start(t1);o.stop(t1+d+.05)}))}
 function chordLadder(){const pcs=[...new Set((AU.ch||[62,66,69,73]).map(m=>m%12))].sort((a,b)=>a-b),out=[];for(let o=72;out.length<9;o+=12)for(const pc of pcs){const m=o+pc;if(m>=79&&out.length<9)out.push(m)}return out}
 function sfx(k,n=1){
   if(!AC||!SET.sound)return;
-  if(k==='place')tone(440,.07,'sine',.07,0,.8);
-  else if(k==='fuse'){const L=chordLadder(),m=L[Math.min(n-1,L.length-1)];clink(m,0,.026+.003*Math.min(n,6));if(n>=4)clink(m+12,.07,.012)}
-  else if(k==='absorb')tone(620,.2,'sine',.1,0,.5);
-  else if(k==='conv')tone(480,.14,'sine',.1,0,1.7);
+  if(k==='place'){const r=chordTones().find(x=>x>=67)||67;tone(mtof(r),.07,'sine',.07,0,.85)}   // 置く音は、いまの和音の音に
+  else if(k==='fuse'){   // 連鎖が進むほど声部がふえてハモる。メロディは和音の音を上っていく
+    const L=chordLadder(),m=L[Math.min(n-1,L.length-1)],v=.024+.003*Math.min(n,6);clink(m,0,v);
+    if(n>=2){const h=below(m,3);clink(h,.012,v*.55);if(n>=3)clink(below(h,3),.024,v*.42)}
+    if(n>=4)clink(m+12,beatDelay(.06,2),v*.4);   // きらめきは次の16分ぴったりに
+  }
+  else if(k==='resolve'){   // 連鎖のしめくくり: 次の拍の頭で、いまの和音をそっと鳴らす
+    const d=beatDelay(.08,.5),top=chordLadder()[Math.min(n,6)],ts=[top,below(top,3),below(below(top,3),3),below(below(below(top,3),3),3)].sort((a,b)=>a-b);
+    ts.forEach((m,i)=>shimmer(m,d+i*.035,.013+.002*Math.min(n,6)))}
+  else if(k==='absorb'){const r=chordTones().find(x=>x>=74);tone(mtof(r),.2,'sine',.1,0,.5)}
+  else if(k==='conv'){const r=chordTones().find(x=>x>=67);tone(mtof(r),.14,'sine',.1,0,2)}
   else if(k==='over'){tone(330,.5,'triangle',.12,0,.5);tone(247,.7,'triangle',.1,.25,.5)}
   else if(k==='collapse'){tone(392,2.3,'sine',.09,0,.18);tone(196,2.3,'triangle',.05,.1,.25)}
   else if(k==='flash'){tone(90,1.2,'sine',.16,0,.5);tone(1568,.9,'sine',.05,.02,.7)}
   else if(k==='chord')[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,j*.12));
-  else if(k==='perk')[0,2,4,7].forEach((i,j)=>tone(SC[i],.22,'triangle',.1,j*.08));
+  else if(k==='chapter'){const d=beatDelay(.05,.5),ts=chordTones().filter(x=>x>=62&&x<=86);ts.forEach((m,j)=>shimmer(m,d+j*.06,.02))}   // 章: 次の拍の頭で、いまの和音
+  else if(k==='perk'){const L=chordLadder(),d=beatDelay(.03,1),g=BGM_STEP/2;[0,1,2,4].forEach((i,j)=>clink(L[i],d+j*g,.022))}   // 加護: 和音の音を16分で上る
   else if(k==='undo')tone(760,.16,'sine',.08,0,.6);
-  else if(k==='ach'){const L=chordLadder();clink(L[2],0,.03);clink(L[4],.12,.026);clink(L[6]||L[5],.24,.022)}
-  else if(k==='keep'){tone(660,.06,'sine',.06,0,1.25);tone(990,.08,'sine',.035,.05,1.1)}
+  else if(k==='ach'){const L=chordLadder(),d=beatDelay(.03,1),g=BGM_STEP/2;clink(L[2],d,.03);clink(L[4],d+g,.026);clink(L[6]||L[5],d+2*g,.022)}
+  else if(k==='keep'){const t=chordTones().filter(x=>x>=76);tone(mtof(t[0]),.06,'sine',.06,0,1.06);tone(mtof(t[2]),.08,'sine',.035,.05,1)}
   else if(k==='ng')tone(200,.1,'sine',.06);
-  else if(k==='new')[3,5,7].forEach((i,j)=>tone(SC[i],.3,'sine',.08,j*.07));
+  else if(k==='new'){const L=chordLadder(),d=beatDelay(.1,2),g=BGM_STEP/2;[3,5,7].forEach((i,j)=>clink(L[Math.min(i,L.length-1)]+12,d+j*g,.014))}   // 新しい星: 高いところで小さくきらめく
 }
 function vib(ms){if(SET.vib&&navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 
@@ -695,12 +719,8 @@ async function place(i){
   cS=.3;busy=false;save();refresh();
   if(S.pend)showPerks();
 }
-// 連鎖をBGMのリズムに乗せる: 合体の瞬間を曲の拍の区切りに合わせて待つ(1段目は16分、2段目からは8分)。曲が鳴っていなければ決まった時間だけ待つ
-function beatWait(minMs,div){
-  if(!AC||!AU.playing||!SET.bgm||AC.state!=='running'||tut)return sleep(minMs+60);
-  const g=BGM_STEP/div,now=AC.currentTime,target=now+minMs/1000,t=AU.next+Math.ceil((target-AU.next)/g)*g;
-  return sleep(Math.max(minMs,(t-now)*1000));
-}
+// 連鎖をBGMのリズムに乗せる: 合体の瞬間を曲の8分の区切りに合わせて待つ。曲が鳴っていなければ決まった時間だけ待つ
+function beatWait(minMs,div){if(!synced()||tut)return sleep(minMs+60);return sleep(beatDelay(minMs/1000,div)*1000)}
 async function react(p){
   let last=null;const pl=S.ring[p],pa=disp[pl.id]?disp[pl.id].a:0;
   for(const ev of fuseGen(S.ring,p,S.perks,()=>S.nid++)){
@@ -709,7 +729,7 @@ async function react(p){
     if(ev.from)delete disp[ev.from.id];
     for(const o of ev.cons){const d=disp[o.id];if(d)ghosts.push({o:{t:o.t,v:o.v},a0:d.a,a1:md.a,r0:d.r,r1:1,t0:performance.now(),dur:300});delete disp[o.id]}   // 吸い寄せられる動きはゆっくり
     syncDisp();
-    await beatWait((ev.cons.length?290:80)+(ev.step===4?110:0),ev.step===1?2:1);   // 吸い寄せ終わってから、次の拍で合体(4段目だけ1拍ためて、そこから先はまた8分で刻む)
+    await beatWait((ev.cons.length?290:80)+(ev.step===4?110:0),1);   // 1段目から8分で刻む   // 吸い寄せ終わってから、次の拍で合体(4段目だけ1拍ためて、そこから先はまた8分で刻む)
     md.s=ev.echo?1.4:1.24;
     const ps=posOf(ev.mid.id);burst(ps.x,ps.y,gemColor(ev.mid.v),ev.step>1?11:7);
     orb.push({k:'wave',a:md.a,t0:performance.now(),dur:650,amp:.28});
@@ -723,6 +743,7 @@ async function react(p){
     await sleep(ev.step===1?150:110);
     last=ev;
   }
+  if(last&&last.step>=3)sfx('resolve',last.step);
   if(last&&last.step>=4&&!tut&&S.queue.length&&S.queue[0].t!=='p'&&S.queue[0].t!=='d'){S.queue[0]={t:'p'};achGive('nextc');fx.push({txt:'次は彗星',t0:performance.now(),dur:1100,dy:.16,s:.045,col:'#ffb39a'})}   // 4連鎖以上のご褒美
 }
 function discover(v){
