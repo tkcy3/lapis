@@ -30,7 +30,6 @@ body{background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--ink);f
 .at{aspect-ratio:1;border:0;border-radius:12px;background:var(--btn);font-size:24px;color:var(--ink);display:grid;place-items:center;padding:0}.at.lock{opacity:.32;filter:grayscale(1);font-size:18px}.at.sel{box-shadow:0 0 0 2px #d8bd6a inset}
 .ad{min-height:58px;margin:12px 0 4px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);font-size:13px;color:#c9d0ea;text-align:left;line-height:1.5}.ad b{color:#e9ecf8}.ad small{color:#d8bd6a}
 #sky,#fly{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-#cfx{position:fixed;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;display:none}
 #warn{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;background:radial-gradient(ellipse 85% 72% at 50% 46%,rgba(0,0,0,0) 44%,rgba(130,22,40,.46) 78%,rgba(180,38,48,.78) 100%)}
 #app{position:fixed;z-index:1;top:0;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;max-width:560px;margin:0 auto}
 header{width:100%;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 12px 0}
@@ -158,12 +157,12 @@ body.onTitle #app{visibility:hidden}
 .rv{opacity:0;animation:rv .7s ease-out forwards}
 @keyframes rv{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .ovr h2{font-size:26px;margin-top:4px}
-.nfr{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:4px 0 6px}.nfr span{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--sub);width:64px}.nfr canvas{width:34px;height:34px}.csn b{color:#e8cd96;font-weight:700}.csn span{opacity:.65;font-size:12px}.nfr.many{gap:4px;max-width:330px;margin-left:auto;margin-right:auto}.nfr.many span{width:auto}.nfr.many canvas{width:28px;height:28px}
+.nfr{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:4px 0 6px}.nfr span{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--sub);width:64px}.nfr canvas{width:34px;height:34px}.nfr.many{gap:4px;max-width:330px;margin-left:auto;margin-right:auto}.nfr.many span{width:auto}.nfr.many canvas{width:28px;height:28px}
 @media (prefers-reduced-motion:reduce){.panel{animation:none}#score{transition:none}.rv{animation:none;opacity:1}}
 </style>
 </head>
 <body>
-<canvas id="sky"></canvas><canvas id="fly"></canvas><canvas id="cfx"></canvas><div id="warn"></div><div id="achT"></div>
+<canvas id="sky"></canvas><canvas id="fly"></canvas><div id="warn"></div><div id="achT"></div>
 <div id="app">
   <header>
     <canvas id="maxc" aria-label="いちばん大きい星"></canvas>
@@ -212,9 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.9.0';
+const VER='0.9.1';
 const CHANGES=[
-  ['0.9.0','2026-11-24',['🌌 あなたの星座: ゲームを終えると、その宇宙で育てた星たちが拍に乗ってひとつずつ灯り、線で結ばれて星座になります。名前がついて、終えた時刻の北の空へ昇っていきます','🔭 星座は背景の空に残り、本物の星と一緒に回ります。毎日同じ時刻になると、また空に昇ってきます(最大40個)','🎐 余韻の和音を長くしました。余韻のあいだは画面をタップすると結果へ飛ばせます']],
+  ['0.9.1','2026-11-24',['↩ 「あなたの星座」をやめました(背景の星座と重なって見づらかったため)。ゲームオーバーは前の余韻(星雲のなごりと、残った星)に戻り、空に残っていた星座も消しました']],
   ['0.8.0','2026-11-23',['🌌 ゲームオーバーに余韻を。閃光のあと、星雲のなごりがゆっくり広がって薄れ、星くずが漂い、いちばん大きく育った星が光の中から姿を見せます。長く残る和音と遠いグラスの音が鳴り、結果を見ているあいだ曲が小さく戻ってきます','🔢 結果画面で図鑑から戻ったとき、点数がもう一度数え直されないようにしました','🪐 「この宇宙で はじめて見つけた星」を、8つまでではなく全部見せるようにしました(多いときは小さく並べます)','📐 タイトルの「いちばん大きい星」と「BEST」を2行に分けて、変なところで折り返さないようにしました']],
   ['0.7.9','2026-11-23',['✨ 合体した直後に星がチカッと点滅して見えていたのを直しました。拍の瞬間までは彗星(や前の数)のまま見せ、吸い寄せられる星はちょうど拍で重なってすっと消え、星くずは星の縁から外へ散るようにしました']],
   ['0.7.8','2026-11-23',['🎵 はじめて遊ぶときのBGMの音量を「中」にしました']],
@@ -343,7 +342,7 @@ function gen(){
   return{t:'n',v};
 }
 function newGame(){
-  COL=0;COLHIDE=0;consStop();GOSKIP=null;
+  COL=0;
   achDay();
   S=blank();
   for(let i=0;i<6;i++)S.ring.push({id:S.nid++,t:'n',v:1+Math.floor(rnd()*3)});
@@ -580,7 +579,7 @@ function draw(t){
       const ag=Math.min(1,(fp-.3)*FLASH_MS/AFTER_MS),e=1-Math.pow(1-ag,3),col=corOf(S.maxT),rr=size*(.12+.3*e);
       const ng=c.createRadialGradient(cx,cy,rr*.35,cx,cy,rr*1.12);ng.addColorStop(0,rgba(col,0));ng.addColorStop(.82,rgba(col,.08*(1-ag)));ng.addColorStop(1,rgba(col,0));c.fillStyle=ng;c.beginPath();c.arc(cx,cy,rr*1.12,0,TAU);c.fill();
       c.lineWidth=Math.max(1,size*.006);c.strokeStyle=rgba(col,.22*(1-ag));c.beginPath();c.arc(cx,cy,rr,0,TAU);c.stroke();
-      const fo=COLHIDE?Math.max(0,1-(performance.now()-COLHIDE+300)/900):1;c.globalAlpha=Math.min(1,ag*1.6)*fo;if(c.globalAlpha>0)drawBody(c,cx,cy,cr*(1.05+.25*e),S.maxT,t);c.globalAlpha=1}
+      c.globalAlpha=Math.min(1,ag*1.6);drawBody(c,cx,cy,cr*(1.05+.25*e),S.maxT,t);c.globalAlpha=1}
   }
   if(S.center&&!busy&&!S.over){
     cS+=(1-cS)*.2;
@@ -667,7 +666,7 @@ function sfx(k,n=1,w=0){   // w: 鳴らすまでの秒(拍に合わせるとき)
   else if(k==='flash'){tone(73.4,1.2,'sine',.16,w,.5);tone(1174.7,.9,'sine',.05,w+.02,.7)}   // 閃光はニ(D)の音
   else if(k==='after'){const t0=AC.currentTime+w;   // ゆっくりふくらんで長く残る和音(Dmaj9)と、ときどき遠くで鳴るグラス
     [[50,.05],[57,.04],[66,.032],[73,.022],[76,.016]].forEach(([m,v],j)=>[0,7].forEach(ct=>{const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='triangle';o.frequency.value=mtof(m);o.detune.value=ct;f.type='lowpass';f.frequency.value=1300;
-      g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v*.5,t0+1.3+j*.18);g.gain.setValueAtTime(v*.5,t0+6);g.gain.exponentialRampToValueAtTime(.0001,t0+13);o.connect(f).connect(g).connect(AC.destination);o.start(t0);o.stop(t0+13.1)}));
+      g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v*.5,t0+1.3+j*.18);g.gain.exponentialRampToValueAtTime(.0001,t0+7.5);o.connect(f).connect(g).connect(AC.destination);o.start(t0);o.stop(t0+7.6)}));
     [86,81,78,74].forEach((m,j)=>clink(m,w+BGM_STEP*2*(j+1),.014))}
   else if(k==='chord'){const d=beatDelay(0,.5);[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,d+j*BGM_STEP/2))}   // 結果の和音(ニ長調の主和音)も拍の頭から16分で
   else if(k==='chapter'){const d=beatDelay(.05,.5),ts=chordTones().filter(x=>x>=62&&x<=86);ts.forEach((m,j)=>shimmer(m,d+j*.06,.02))}   // 章: 次の拍の頭で、いまの和音
@@ -734,7 +733,7 @@ async function place(i){
   let first=o;
   for(let g=0;g<60;g++){const p=findPlus(S.ring,first);first=null;if(p<0)break;await react(p)}
   if(tut){busy=false;refresh();tutNext();return}
-  S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});recT();
+  S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});
   if(S.ring.length>S.cap){busy=false;gameOver();return}
   if(wasFull&&S.score>sc0)achGive('last');if(o.t==='d'&&S.score>sc0)achGive('dark');if(S.kClutch&&o.t==='p'&&S.score>sc0)achGive('keepc');S.kClutch=0;
   achScan();
@@ -825,7 +824,7 @@ async function applyPerk(k){
       S.ring=S.ring.filter(o=>!(o.t==='n'&&o.v===mn));syncDisp();sfx('absorb');
       await sleep(250);
       for(let g=0;g<60;g++){const p=findPlus(S.ring,null);if(p<0)break;await react(p)}
-      S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});recT();
+      S.ring.forEach(r=>{if(r.t==='n')S.maxT=Math.max(S.maxT,r.v)});
     }
     if(S.center&&S.center.t==='m'&&!S.ring.length)S.center={t:'p'};
     busy=false;
@@ -847,91 +846,18 @@ function gameOver(ev){
   S.newBest=nb;sendLog(ev||'over');save();refresh();
   // 重力崩壊も曲に乗せる: 次の8分で崩れはじめ、曲はその間にゆっくり消え、閃光は拍の頭(2秒以上あと)に来る
   const rm=RM0||RM_FORCE,d0=rm?0:beatDelay(0,1);COL_MS=rm?600:(synced()?Math.round((beatDelay(d0+2.1,.5)-d0)*1000):2300);
-  hover=null;COLHIDE=0;COL=Object.assign(new Number(performance.now()+d0*1000),{burst:0});
+  hover=null;COL=Object.assign(new Number(performance.now()+d0*1000),{burst:0});
   bgmFade(0,rm?.7:d0+COL_MS/1000);sfx('collapse',1,d0);setTimeout(()=>vib(20),d0*1000);
   sfx('flash',1,d0+COL_MS/1000);setTimeout(()=>vib([40,40,90]),d0*1000+COL_MS);
-  const cs=consMake();S.cons=cs;consSave(cs);   // この宇宙の星座(終えた時刻の北の空に残る)
-  if(rm){setTimeout(()=>{sky();showOver()},d0*1000+COL_MS+FLASH_MS+500);return}
-  sfx('after',1,d0+COL_MS/1000);   // 余韻の和音
-  const tm=setTimeout(()=>consAnim(cs,()=>{GOSKIP=null;showOver()}),d0*1000+COL_MS+FLASH_MS*.3+AFTER_MS*.75);   // 残った星が姿を見せたころ、星座が結ばれはじめる
-  const t1=performance.now();GOSKIP=()=>{if(performance.now()-t1<1500)return false;clearTimeout(tm);consStop();GOSKIP=null;sky();showOver();return true};   // タップで飛ばせる(終わった直後のタップは無視)
+  if(!rm)sfx('after',1,d0+COL_MS/1000);   // 余韻の和音
+  setTimeout(()=>showOver(),d0*1000+COL_MS+(rm?FLASH_MS+500:FLASH_MS*.3+AFTER_MS+250));   // 崩壊のあとの静けさは結果の後ろにも残す(COLは次のゲームで消す)
 }
-/* ---------- あなたの星座(ゲームオーバーの余韻) ----------
-   その宇宙で「いちばん大きい星」が育っていった足あと(最大8つ)を星にして星座を結び、名前をつける。
-   星座は、ゲームを終えた時刻に北の空の高さ20〜40度あたりに見えていた場所(赤経・赤緯)に残るので、毎日同じ時刻にまた昇ってくる */
-const LS_CONS='lapis_cons_v1';let CONS=load(LS_CONS,[]);if(!Array.isArray(CONS))CONS=[];
-let GOSKIP=null,CF=null,COLHIDE=0;   // COLHIDE: 盤の上の残った星が星座へ変わりはじめた時刻
-addEventListener('pointerdown',e=>{if(GOSKIP&&GOSKIP()){e.stopPropagation();e.preventDefault()}},true);
-function recT(){const r=S.recs||(S.recs=[]);if(!r.length||S.maxT>r[r.length-1])r.push(S.maxT)}
-function consWhen(cs){const d=new Date(cs.at);return`${d.getMonth()+1}月${d.getDate()}日 ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`}
-function consMake(){
-  let r=((S.score|0)*7919+(S.moves|0)*104729+(S.maxT|0)*131+Date.now()%100000)>>>0||1;const R=()=>{r^=r<<13;r>>>=0;r^=r>>>17;r^=r<<5;r>>>=0;return r/4294967296};
-  let vs=[...new Set((S.recs||[]).filter(v=>v>=3))];if(!vs.length||vs[vs.length-1]!==S.maxT)vs.push(S.maxT);
-  if(vs.length>8){const L=vs.length;vs=[...Array(8)].map((_,i)=>vs[Math.round(i*(L-1)/7)])}
-  while(vs.length<3)vs.unshift(Math.max(1,vs[0]-1-Math.floor(R()*2)));
-  // かたち: 少しずつ向きを変えながら歩いて、近すぎないように星を置く
-  const n=vs.length,P=[[0,0]];let ang=R()*TAU;
-  for(let i=1;i<n;i++){let best=null;for(let k=0;k<24;k++){const a=ang+(R()-.5)*2.4,d=.55+R()*.5,c=[P[i-1][0]+Math.cos(a)*d,P[i-1][1]+Math.sin(a)*d];const md=Math.min(...P.map(q=>Math.hypot(q[0]-c[0],q[1]-c[1])));if(!best||md>best.md){best={c,md,a}}if(md>.5)break}P.push(best.c);ang=best.a}
-  const xs=P.map(q=>q[0]),ys=P.map(q=>q[1]),mx=(Math.max(...xs)+Math.min(...xs))/2,my=(Math.max(...ys)+Math.min(...ys))/2,sc=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys),1);
-  const xy=P.map(q=>[(q[0]-mx)/sc,(q[1]-my)/sc]);   // -0.5〜0.5
-  const e=[];for(let i=1;i<n;i++)e.push([i-1,i]);
-  if(n>=5){const i=Math.floor(R()*(n-3));for(let j=n-1;j>i+2;j--)if(Math.hypot(xy[i][0]-xy[j][0],xy[i][1]-xy[j][1])<.55){e.push([i,j]);break}}   // ときどき輪を閉じる
-  // 名前
-  const MOT=['舟','鳥','鍵','灯','琴','冠','杖','魚','鈴','扉','羽','砂時計','角笛','帆','小箱','花かご','風見','錨','ランプ','ブランコ','かざぐるま','水差し'];
-  const ADJ=['しずかな','まどろむ','はるかな','やさしい','まよい','きらめく','ねむれる','とおい','ひとりの','うたう'];
-  const ch=S.chainMax||0,adj=ch>=8?'滝の':S.maxT>=30?'大いなる':S.moves>=600?'旅する':ch>=6?'つらなる':S.maxT<=8?'ちいさな':ADJ[Math.floor(R()*ADJ.length)];
-  const name=adj+MOT[Math.floor(R()*MOT.length)]+'座';
-  // 空の場所: いま北の空(高さ20〜40度)に見えている場所を、画面上のかたちのまま赤経・赤緯にする
-  skyParse();skyLoc();const at=Date.now(),L=lst(at),rad=Math.PI/180,la=SKY.lat*rad;
-  const span=.27,toRD=(X,Y)=>{const rr=Math.hypot(X,Y),az=Math.atan2(-X,-Y),alt=Math.PI/2-2*Math.atan(rr);
-    const sd=Math.sin(alt)*Math.sin(la)+Math.cos(alt)*Math.cos(la)*Math.cos(az),dec=Math.asin(sd),H=Math.atan2(-Math.sin(az)*Math.cos(alt),Math.cos(la)*Math.sin(alt)-Math.sin(la)*Math.cos(alt)*Math.cos(az));
-    return[((L-H/rad)%360+360)%360,dec/rad]};
-  // 置き場所: 真上を中心に k を1とした画面の座標(上が北)。これまでの星座となるべく重ならないところ
-  const cen=CONS.map(o=>{const a=o.p.reduce((s,q)=>s+q[0],0)/o.p.length,d=o.p.reduce((s,q)=>s+q[1],0)/o.p.length;return[a,d]});
-  const angD=(a1,d1,a2,d2)=>{const r1=a1*rad,r2=a2*rad,e1=d1*rad,e2=d2*rad;return Math.acos(Math.max(-1,Math.min(1,Math.sin(e1)*Math.sin(e2)+Math.cos(e1)*Math.cos(e2)*Math.cos(r1-r2))))/rad};
-  let zc=0,zr=.66,bestD=-1;for(let k=0;k<14;k++){const c1=(R()-.5)*.5,r1=.56+R()*.2,[a,d]=toRD(c1,-r1),md=cen.length?Math.min(...cen.map(q=>angD(a,d,q[0],q[1]))):99;if(md>bestD){bestD=md;zc=c1;zr=r1}if(md>30)break}
-  const p=xy.map(([x,y],i)=>{const X=zc+x*span,Y=-zr+y*span,[a,d]=toRD(X,Y);return[+a.toFixed(2),+d.toFixed(2),vs[i]]});
-  return{name,at,p,e,xy,score:S.score,maxT:S.maxT}}
-function consSave(cs){CONS.push({name:cs.name,at:cs.at,p:cs.p,e:cs.e,score:cs.score,maxT:cs.maxT});while(CONS.length>40)CONS.shift();store(LS_CONS,CONS)}
-function consScreen(cs){   // いまの空で、その星座の星が画面のどこにあるか(背景の空と同じ計算)
-  skyLoc();const W=innerWidth,H=innerHeight,L=lst(Date.now())*Math.PI/180,la=SKY.lat*Math.PI/180,sl=Math.sin(la),cl=Math.cos(la),rad=Math.PI/180;
-  const rb=$('#cv').getBoundingClientRect(),k=Math.max(W,H)/2*1.04,cx=rb.left+rb.width/2,cy=rb.top+rb.height/2;
-  return cs.p.map(([ra,de])=>{const h=L-ra*rad,dd=de*rad,sa=sl*Math.sin(dd)+cl*Math.cos(dd)*Math.cos(h);const alt=Math.asin(Math.max(-1,Math.min(1,sa))),az=Math.atan2(-Math.cos(dd)*Math.sin(h),Math.sin(dd)*cl-Math.cos(dd)*Math.cos(h)*sl),r=k*Math.tan((Math.PI/2-alt)/2);return[cx-r*Math.sin(az),cy-r*Math.cos(az)]})}
-function consStop(){if(CF){cancelAnimationFrame(CF.raf);CF=null}const el=$('#cfx');if(el)el.style.display='none'}
-function consAnim(cs,done){
-  consStop();const el=$('#cfx'),dp=Math.min(devicePixelRatio||1,2),W=innerWidth,H=innerHeight;el.width=W*dp;el.height=H*dp;el.style.display='block';const c=el.getContext('2d');c.setTransform(dp,0,0,dp,0,0);
-  const rb=$('#cv').getBoundingClientRect(),cx=rb.left+rb.width/2,cy=rb.top+rb.height/2,box=rb.width*.6,n=cs.p.length;
-  const from=cs.xy.map(([x,y])=>[cx+x*box,cy+y*box]),to=consScreen(cs);
-  const st=BGM_STEP*1000,lead=synced()?beatDelay(.2,1):.25,t0=performance.now()+lead*1000;   // 星は8分ごとに1つずつ灯る
-  const tName=t0+(n+1)*st,tRise=tName+2*st*4,tEnd=tRise+1700;
-  // 音: 星が灯るたびに、和音の音を下から上へ。結び終えたら和音のきらめき
-  const ch=chordTones().filter(m=>m>=69&&m<=98);for(let i=0;i<n;i++)clink(ch[Math.min(ch.length-1,i)]||81+i*2,lead+i*BGM_STEP,.02);
-  chordTones().filter(m=>m>=74&&m<=93).slice(0,4).forEach((m,j)=>shimmer(m,lead+(n+1)*BGM_STEP+j*.035,.012));
-  CF={t0,raf:0};COLHIDE=t0;
-  const draw=t=>{if(!CF)return;c.clearRect(0,0,W,H);
-    const kr=Math.max(0,Math.min(1,(t-tRise)/1700)),ke=kr<.5?2*kr*kr:1-Math.pow(-2*kr+2,2)/2,fa=1-.55*ke;
-    const pos=i=>{const a=from[i],b=to[i]||from[i];return[a[0]+(b[0]-a[0])*ke,a[1]+(b[1]-a[1])*ke]};
-    // 線: 星が灯るのに合わせて、前の星からのびていく
-    c.lineCap='round';c.lineWidth=1.4-.5*ke;
-    cs.e.forEach(([i,j],k)=>{const s0=k<n-1?t0+(j-1)*st:t0+n*st,pr=Math.max(0,Math.min(1,(t-s0)/st));if(pr<=0)return;const a=pos(i),b=pos(j);
-      c.strokeStyle=`rgba(240,215,160,${.5*fa})`;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(a[0]+(b[0]-a[0])*pr,a[1]+(b[1]-a[1])*pr);c.stroke()});
-    // 星: ぽっと灯って、ゆっくりまたたく
-    cs.p.forEach(([,,v],i)=>{const ti=t0+i*st,k=(t-ti)/400;if(k<0)return;const[x,y]=pos(i),pop=k<1?1+.8*(1-k)*(1-k):1,col=gemColor(v),r=(2.2+Math.min(v,40)*.06)*(1-.45*ke),tw=.85+.15*Math.sin(t/430+i*1.7);
-      const g=c.createRadialGradient(x,y,0,x,y,r*5*pop);g.addColorStop(0,rgba(col,.45*fa*tw));g.addColorStop(1,rgba(col,0));c.fillStyle=g;c.beginPath();c.arc(x,y,r*5*pop,0,TAU);c.fill();
-      c.globalAlpha=fa;c.fillStyle='#fffaf0';c.beginPath();c.arc(x,y,r*.55*pop,0,TAU);c.fill();c.fillStyle=col;c.globalAlpha=.7*fa;c.beginPath();c.arc(x,y,r*pop,0,TAU);c.fill();c.globalAlpha=1});
-    // 名前
-    const kn=Math.max(0,Math.min(1,(t-tName)/900))*(1-Math.min(1,kr*1.6));if(kn>0){const ny=cy+box*.5+34;c.textAlign='center';c.textBaseline='middle';
-      c.globalAlpha=kn;c.fillStyle='#ecd9a8';c.font=`700 19px ${FONT}`;c.fillText(cs.name,cx,ny);c.font=`500 11px ${FONT}`;c.fillStyle='rgba(200,205,235,.75)';c.fillText(consWhen(cs)+' の北の空に',cx,ny+24);c.globalAlpha=1}
-    if(t>=tEnd){consStop();sky();done();return}
-    CF.raf=requestAnimationFrame(draw)};
-  CF.raf=requestAnimationFrame(draw)}
 function showOver(){
   const back=!!RM_FORCE,nf=S.newFound||[],many=nf.length>8,st=(d,ms)=>`style="animation-delay:${(RM0||RM_FORCE)?0:Math.round(d*1.15)}ms"`;   // back: 図鑑から戻ってきたとき
   open(`<div class="ovr">${S.chap?`<p class="small rv chl" ${st(0)}>${CHAPS[S.chap-1][1]}　${CHAPS[S.chap-1][2]}</p>`:''}<p class="small rv" ${st(0)}>あなたの宇宙は</p><canvas id="bigc" class="rv" ${st(150)}></canvas>
     <h2 class="rv" ${st(350)}>${bodyName(S.maxT)}</h2><p class="small rv" ${st(450)}>まで育ちました</p>
     <div class="big rv" id="oS" ${st(800)}>0</div><p class="rv" ${st(1500)}>${S.newBest?'<b style="color:#d8bd6a">ベスト更新!</b>':'BEST '+ST.best}</p>
     <p class="small rv" ${st(1600)}>最大 ${S.chainMax} 連鎖 ・ ${S.moves} 手${S.ms>60000?` ・ ${Math.round(S.ms/60000)} 分`:''}</p>
-    ${S.cons?`<p class="small rv csn" ${st(1680)}>あなたの星座 <b>${S.cons.name}</b><br><span>${consWhen(S.cons)} の北の空に残りました</span></p>`:''}
     ${nf.length?`<p class="small rv" ${st(1750)}>この宇宙で はじめて見つけた星${many?` ${nf.length}種類`:''}</p><div class="nfr rv${many?' many':''}" ${st(1800)}>${nf.map(v=>`<span><canvas data-v="${v}"></canvas>${many?'':bodyName(v)}</span>`).join('')}</div>`:''}
     <div class="rv" id="oBtns" ${st(2000)}><button class="btn pri" id="againB">もう一度</button><div class="row"><button class="btn" id="galB2">図鑑</button><button class="btn" id="ttlB">タイトルへ</button></div></div></div>`);
   paintMini($('#bigc'),{t:'n',v:S.maxT},120);
@@ -1016,10 +942,10 @@ function showSettings(back){
   }
   $('#sU').onclick=()=>showChangelog(again);
   if($('#sA'))$('#sA').onclick=()=>showAddHome(again);
-  $('#sX').onclick=()=>{open(`<h2>記録のリセット</h2><p>ベスト・図鑑・実績・プレイ回数・あなたの星座と、途中のゲームを消しますか?<br><span class="small">(設定はそのまま)</span></p><div class="row"><button class="btn" id="xN">やめる</button><button class="btn danger" id="xY">消す</button></div>`);
-    $('#xN').onclick=again;$('#xY').onclick=()=>{ST.best=0;ST.bestT=0;ST.games=0;ST.found=[];store('lapis_st',ST);ACH={u:{},st:{seeded:1}};achSave();CONS=[];S=null;try{localStorage.removeItem('lapis_s');localStorage.removeItem(LS_CONS)}catch(e){}sky();disp={};refreshTitle();if(onTitle)again();else{close();showTitle()}}};   // ゲーム中に消したらタイトルへ
+  $('#sX').onclick=()=>{open(`<h2>記録のリセット</h2><p>ベスト・図鑑・実績・プレイ回数と、途中のゲームを消しますか?<br><span class="small">(設定はそのまま)</span></p><div class="row"><button class="btn" id="xN">やめる</button><button class="btn danger" id="xY">消す</button></div>`);
+    $('#xN').onclick=again;$('#xY').onclick=()=>{ST.best=0;ST.bestT=0;ST.games=0;ST.found=[];store('lapis_st',ST);ACH={u:{},st:{seeded:1}};achSave();S=null;try{localStorage.removeItem('lapis_s')}catch(e){}disp={};refreshTitle();if(onTitle)again();else{close();showTitle()}}};   // ゲーム中に消したらタイトルへ
   $('#sW').onclick=()=>{open(`<h2>すべて初期化</h2><p>記録も設定も、すべて最初の状態に戻しますか?</p><div class="row"><button class="btn" id="wN">やめる</button><button class="btn danger" id="wY">初期化</button></div>`);
-    $('#wN').onclick=again;$('#wY').onclick=()=>{WIPING=true;S=null;tut=null;saved=null;try{['lapis_s','lapis_st','lapis_set',LS_ACH,LS_CONS].forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}};   // 読み込み直す瞬間の自動保存で、途中のゲームが書き戻されないように
+    $('#wN').onclick=again;$('#wY').onclick=()=>{WIPING=true;S=null;tut=null;saved=null;try{['lapis_s','lapis_st','lapis_set',LS_ACH].forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}};   // 読み込み直す瞬間の自動保存で、途中のゲームが書き戻されないように
   $('#sC').onclick=back||close;
 }
 /* 更新内容: 同じ日の更新はまとめて、新しい順に(KROPKIと同じ見せ方) */
@@ -1050,7 +976,7 @@ function showHelp(back,inTut){
   ];
   const pic=x=>x==='→'?'<i>→</i>':x==='eye'?SVG.eye:x==='undo'?SVG.undo:x==='keep'?SVG.keep:x==='perk'?icon('plus'):`<canvas data-p="${x}"></canvas>`;
   open(`<h2>遊び方</h2>${rows.map(r=>`<div class="hrow"><div class="pics${r[0].length>5?' sm':''}">${r[0].map(pic).join('')}</div><p>${r[1]}</p></div>`).join('')}
-    <p class="small" style="opacity:.6;margin:6px 0 10px">背景は、南を向いて真上を見上げた いまの空です(設定で星座の線・名前を出せます)。1ゲーム終えるたびに、その宇宙で育てた星たちが「あなたの星座」になって、終えた時刻の北の空に残ります(同じ時刻にまた空に昇ってきます)。星のデータ: ヒッパルコス星表(ESA)、星座の線と名前: d3-celestial (© Olaf Frohn)</p>
+    <p class="small" style="opacity:.6;margin:6px 0 10px">背景は、南を向いて真上を見上げた いまの空です(設定で星座の線・名前を出せます)。星のデータ: ヒッパルコス星表(ESA)、星座の線と名前: d3-celestial (© Olaf Frohn)</p>
     ${inTut?'':'<button class="btn pri" id="hT">▶ チュートリアルで体験する</button>'}<button class="btn" id="hB">${back?'戻る':'閉じる'}</button>`);
   document.querySelectorAll('.pics canvas').forEach(el=>{
     const k=el.dataset.p,px=30;
@@ -1071,7 +997,7 @@ function refreshTitle(){
   if(ST.bestT)paintMini($('#tBestC'),{t:'n',v:ST.bestT},36);
   $('#a2hChip').classList.toggle('hidden',!canInstall()||isApp()||!!ST.a2h||ST.games<1);
 }
-function showTitle(){COL=0;COLHIDE=0;consStop();GOSKIP=null;
+function showTitle(){COL=0;
   close();if(S&&!tut)save();
   onTitle=true;document.body.classList.add('onTitle');$('#title').classList.add('on');try{sky()}catch(e){}
   refreshTitle();
@@ -1244,6 +1170,7 @@ function showGallery(back){
 
 /* ---------- 実績(49、うち10はシークレット) ---------- */
 const LS_ACH='lapis_ach_v1';
+try{localStorage.removeItem('lapis_cons_v1')}catch(e){}   // v0.9.0の「あなたの星座」の保存をかたづける
 const ACHS=[
   {id:'s5',ic:'🪨',n:'惑星の誕生',d:'岩の惑星(5)をつくる'},
   {id:'s6',ic:'🌏',n:'青い星',d:'水の惑星(6)をつくる'},
@@ -1471,13 +1398,6 @@ function sky(){
   const COLS=['#cdd8ff','#eef1fb','#fff0d8','#ffdcb8'];
   for(const[a,dd,m,b]of SKY.stars){const q=proj(a,dd);if(!q)continue;const fade=Math.min(1,.35+q[2]*2);   // 地平線に近いほど少し暗く
     c.globalAlpha=Math.max(.1,Math.min(.85,.88-m*.15))*fade;c.fillStyle=COLS[b];c.beginPath();c.arc(q[0],q[1],Math.max(.45,1.75-m*.27),0,TAU);c.fill()}
-  // あなたの星座(遊び終えるたびに空に残る)。金色がかった線と、育てた星の色
-  for(const cs of CONS){const q=cs.p.map(([a,dd])=>proj(a,dd));c.globalAlpha=1;c.lineWidth=.9;c.strokeStyle='rgba(232,205,150,.17)';
-    for(const[i,j]of cs.e)if(q[i]&&q[j]){c.beginPath();c.moveTo(q[i][0],q[i][1]);c.lineTo(q[j][0],q[j][1]);c.stroke()}
-    cs.p.forEach(([a,dd,v],i)=>{if(!q[i])return;c.globalAlpha=.6;c.fillStyle=gemColor(v);c.beginPath();c.arc(q[i][0],q[i][1],1.3+Math.min(v,40)*.035,0,TAU);c.fill()});
-    const vis=q.filter(Boolean);if(onBoard&&vis.length>=cs.p.length/2){   /* 名前はゲーム画面だけ(タイトルの絵とは重ねない) */const nx=vis.reduce((a,b)=>a+b[0],0)/vis.length,ny=Math.max(...vis.map(b=>b[1]))+12;
-      c.globalAlpha=1;c.font=`500 9px ${FONT}`;c.textAlign='center';c.fillStyle='rgba(232,205,150,.2)';const tw=c.measureText(cs.name).width/2;
-      if((!onBoard||Math.hypot(nx-cx,ny-cy)>rb.width*.56)&&nx>tw+4&&nx<W-tw-4&&ny<H-6)c.fillText(cs.name,nx,ny)}}
   // 星座の名前(明るい星座だけ、うっすら)
   c.globalAlpha=1;c.font=`500 10px ${FONT}`;c.textAlign='center';c.fillStyle='rgba(170,185,230,.15)';
   const rx=cx,ry=cy,rr=rb.width*.56;   // 盤の後ろには名前を出さない
