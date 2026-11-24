@@ -209,8 +209,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.10.1';
+const VER='0.11.0';
 const CHANGES=[
+  ['0.11.0','2026-11-25',['🌀 終わりの音を作り直しました。曲は止まらずにそのまま流れ、ピンチのこもりがさらに深まり、響きが深くなり、少しずつゆっくりになって重力に吸い込まれていきます。心音は間をあけて3つ打って止まります','✨ 閃光の音も曲に合わせました。スーッと吸い込む風の音のあと、そのとき鳴っている和音の根音が低く響き、和音のグラスがぱっと咲きます(以前の、音程が下へすべる音はやめました)','🥂 結果画面の和音も、サイン波からグラスの音に変えました']],
   ['0.10.1','2026-11-24',['〰 のこり2つ以下のとき、星が小さくふるえる(ウネウネする)動きをやめました。赤いにじみ・心音・中心へ引き寄せられる動きはそのままです']],
   ['0.10.0','2026-11-24',['🎼 終わりの旋律: 宇宙が終わるとき、曲がゆっくりになりながら G → A → D と進み、遊んでいるあいだ一度も着地しなかった主和音に初めて着地します(そこで閃光)。上では、そのゲームで大きかった連鎖の音が、合体と同じグラスの音で旋律になって流れ、遠くでこだまします','✨ 旋律の一音ごとに中心の光がふくらみ、こだまのたびに残った星がふっと明るくなります。結果画面では点数が数えあがる音と、数え終わりの和音が鳴り、曲は頭から小さく戻ってきます','👆 余韻のあいだは画面をタップすると結果へ飛ばせます(音楽はそのまま流れます)。実績のお知らせは結果が出そろってから出ます','📱 スマホの省エネ設定(アニメーション削除・動きを減らす)をオンにしていても、演出が省かれないようにしました']],
   ['0.9.1','2026-11-24',['↩ 「あなたの星座」をやめました(背景の星座と重なって見づらかったため)。ゲームオーバーは前の余韻(星雲のなごりと、残った星)に戻り、空に残っていた星座も消しました']],
@@ -342,7 +343,7 @@ function gen(){
   return{t:'n',v};
 }
 function newGame(){
-  COL=0;END=null;GOSKIP=null;if(AU.hold)bgmResume(1,.8);if(ACHWAIT)achRelease();
+  COL=0;endStop();GOSKIP=null;if(AU.hold||AU.end)bgmResume(1,.8);if(ACHWAIT)achRelease();
   achDay();
   S=blank();
   for(let i=0;i<6;i++)S.ring.push({id:S.nid++,t:'n',v:1+Math.floor(rnd()*3)});
@@ -486,7 +487,7 @@ let DZ=0;const HB={next:0,beat:0,pulse:0,op:-1};
 function dangerLv(){if(onTitle||!S||S.over||COL||tut)return 0;const rem=S.cap-S.ring.length;return rem<=1?2:rem<=2?1:0}
 function heartbeat(lv,when=0,gap=.2){if(!AC||!SET.sound)return;if(window.__SL)window.__SL.push(['heart',lv,AC.currentTime+when]);const v=lv===2?1:.7;   // ドクン、ドクン(低い音と、スマホでも聞こえる少し高い音)
   [[0,1],[gap,.6]].forEach(([w,a])=>{tone(62,.2,'sine',.26*v*a,when+w,.65);tone(124,.12,'sine',.07*v*a,when+w,.6)})}
-function bgmMuffle(lv){if(!AC||!AU.warm)return;const f=lv===2?900:lv===1?1700:5200;if(AU.muf!==f){AU.warm.frequency.setTargetAtTime(f,AC.currentTime,.5);AU.muf=f}}   // 危ないときは曲がこもって遠くなる
+function bgmMuffle(lv){if(!AC||!AU.warm||AU.end)return;const f=lv===2?900:lv===1?1700:5200;if(AU.muf!==f){AU.warm.frequency.setTargetAtTime(f,AC.currentTime,.5);AU.muf=f}}   // 危ないときは曲がこもって遠くなる
 function dangerStep(){
   const lv=dangerLv(),now=performance.now();DZ+=((lv===2?1:lv===1?.55:0)-DZ)*.04;if(DZ<.003)DZ=0;
   let per=lv===2?1000:1450;
@@ -670,7 +671,7 @@ function sfx(k,n=1,w=0){   // w: 鳴らすまでの秒(拍に合わせるとき)
     [[50,.05],[57,.04],[66,.032],[73,.022],[76,.016]].forEach(([m,v],j)=>[0,7].forEach(ct=>{const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='triangle';o.frequency.value=mtof(m);o.detune.value=ct;f.type='lowpass';f.frequency.value=1300;
       g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v*.5,t0+1.3+j*.18);g.gain.exponentialRampToValueAtTime(.0001,t0+7.5);o.connect(f).connect(g).connect(AC.destination);o.start(t0);o.stop(t0+7.6)}));
     [86,81,78,74].forEach((m,j)=>clink(m,w+BGM_STEP*2*(j+1),.014))}
-  else if(k==='chord'){const d=beatDelay(0,.5);[294,440,587,740].forEach((f,j)=>tone(f,2.8,'sine',.045,d+j*BGM_STEP/2))}   // 結果の和音(ニ長調の主和音)も拍の頭から16分で
+  else if(k==='chord'){const ts=chordTones().filter(x=>x>=69&&x<=93).slice(0,5);ts.forEach((m,j)=>shimmer(m,.02+j*.06,.015))}   // 結果の和音: いま鳴っている和音をグラスでそっと(以前はサイン波のニ長調)   // 結果の和音(ニ長調の主和音)も拍の頭から16分で
   else if(k==='chapter'){const d=beatDelay(.05,.5),ts=chordTones().filter(x=>x>=62&&x<=86);ts.forEach((m,j)=>shimmer(m,d+j*.06,.02))}   // 章: 次の拍の頭で、いまの和音
   else if(k==='perk'){const L=chordLadder(),d=beatDelay(.03,1),g=BGM_STEP/2;[0,1,2,4].forEach((i,j)=>clink(L[i],d+j*g,.022))}   // 加護: 和音の音を16分で上る
   else if(k==='undo')tone(760,.16,'sine',.08,0,.6);
@@ -777,7 +778,6 @@ async function react(p){
     last=ev;
   }
   if(last&&last.step>=3)sfx('resolve',last.step);
-  if(last&&last.step>=2&&!tut)melRec(last.step);   // 終わりの旋律の材料
   if(last&&last.step>=4&&!tut&&S.queue.length&&S.queue[0].t!=='p'&&S.queue[0].t!=='d'){S.queue[0]={t:'p'};achGive('nextc');fx.push({txt:'次は彗星',t0:performance.now(),dur:1100,dy:.16,s:.045,col:'#ffb39a'})}   // 4連鎖以上のご褒美
 }
 function discover(v){
@@ -841,42 +841,37 @@ async function applyPerk(k){
 
 /* ---------- ゲームオーバー ---------- */
 let REW=0;   // 時間が巻き戻るときの、環の逆回転
-/* ---------- 終わりの旋律 ----------
-   遊んでいるあいだ、曲は8小節目の A6sus(主和音に戻りたがる和音)からループの頭へ戻り、一度も主和音に着地しない。
-   宇宙が終わるときだけ、テンポをゆるめながら G → A(sus→A7) → D と進み、初めて主和音 D に着地する(そこが閃光)。
-   上には、そのゲームの大きかった連鎖のてっぺんの音を、合体と同じグラスの音で歌わせる */
-const END_CH={IV:[43,[59,62,66,69]],V1:[45,[55,59,64,66]],V2:[45,[55,61,64,67]],I:[38,[62,66,69,73,76]]};
+/* ---------- 終わりの音: 曲が重力に吸い込まれる ----------
+   本編はそのまま流れつづけ、ピンチのこもりがさらに深まり、響きが深くなり、テンポが少しずつゆるむ(10ステップ)。
+   心音は間をあけて3つ打って止まる。吸い込まれきった瞬間(閃光)に、スーッと吸い込む音 → そのとき鳴っている和音の根音の低い響き → 和音のグラスが咲く。
+   そのあと遠くでグラスのこだま(和音の音を上から4つ、だんだん間をあけて) */
 let END=null;
 let GOSKIP=null;addEventListener('pointerdown',e=>{if(GOSKIP&&GOSKIP()){e.stopPropagation();e.preventDefault()}},true);
-function melRec(n){const L=chordLadder(),m=L[Math.min(n-1,L.length-1)];(S.mel||(S.mel=[])).push([m,n]);if(S.mel.length>80)S.mel.shift()}
-function snapTo(m,pcs,lo,hi){let b=m,bd=99;for(let x=lo;x<=hi;x++)if(pcs.includes(x%12)&&Math.abs(x-m)<bd){bd=Math.abs(x-m);b=x}return b}
-function endPlay(){
-  const beat=BGM_STEP*2,B=[1,1.07,1.18,1.34].map(x=>x*beat),tb=b=>{let t=0;for(let i=0;i<4;i++){const f=Math.max(0,Math.min(1,b-i));t+=f*B[i]}return t};   // だんだんゆっくり(リタルダンド)
-  const T0=synced()?beatAt(.08,.5):AC.currentTime+.12,TI=T0+tb(4);
-  // 旋律: いちばん大きかった連鎖たちを、起きた順に(最大6音)
-  let pk=(S.mel||[]).map((q,i)=>({m:q[0],n:q[1],i})).sort((a,b)=>b.n-a.n||b.i-a.i).slice(0,6).sort((a,b)=>a.i-b.i);
-  if(pk.length<3)pk=[81,78,76,73].map((m,i)=>({m,n:2,i}));
-  const k=pk.length,slots=k>=6?[0,.5,1,2,2.5,3]:k===5?[0,.5,1,2,3]:k===4?[0,1,2,3]:[0,1,3];
-  const pcs=ch=>[...new Set(ch[1].map(x=>x%12))];
-  const notes=pk.slice(0,slots.length).map((q,j)=>{const b=slots[j],ch=b<2?END_CH.IV:b<3?END_CH.V1:END_CH.V2,last=j===slots.length-1;let m=q.m;while(m>88)m-=12;
-    m=last?snapTo(m,[1,4],70,77):snapTo(m,pcs(ch),69,88);return{t:T0+tb(b),m,n:q.n,ch}});   // 最後の音はC#かEにして、主音Dへ導く
-  const fin=notes.length&&notes[notes.length-1].m>=76?(notes[notes.length-1].m>=80?86:74):74;
-  const on=synced()&&AU.out;   // 曲が鳴っていれば伴奏も(ループは止める)
-  if(on){AU.hold=true;const g=AU.out.gain;try{g.cancelScheduledValues(AC.currentTime);g.setValueAtTime(BGM_VOL[SET.bgm||0],AC.currentTime)}catch(e){}
-    const play=(c,t,d,roll,vel)=>{const[root,v]=c;bPad(v.map(x=>x-12),t,d);bBass(root-12+(root<41?12:0),t,d*.9);v.forEach((m,j)=>bEp(m,t+j*roll,d+1.5,vel))};
-    play(END_CH.IV,T0,tb(2),.03,.8);play(END_CH.V1,T0+tb(2),tb(3)-tb(2),.03,.75);
-    END_CH.V2[1].forEach((m,j)=>bEp(m,T0+tb(3)+j*.03,2.4,.5));bBass(33,T0+tb(3),B[3]*.9);
-    play(END_CH.I,TI,7,.075,.85);[74,78,81,85].forEach((m,j)=>bEp(m+12,TI+.6+j*.09,4,.3));AU.ch=END_CH.I[1]}
-  // 旋律(合体と同じグラスの音、和音の3度下でハモる)
-  const lowIn=(m,ch)=>{const p=pcs(ch);for(let x=m-3;x>m-12;x--)if(p.includes(x%12))return x;return m-12};
-  const now=AC.currentTime;
-  notes.forEach(q=>{const v=.02+.003*Math.min(q.n,6);clink(q.m,q.t-now,v);clink(lowIn(q.m,q.ch),q.t-now+.012,v*.5)});
-  clink(fin,TI-now,.032);clink(lowIn(fin,END_CH.I),TI-now+.012,.016);clink(lowIn(lowIn(fin,END_CH.I),END_CH.I),TI-now+.024,.013);   // 主音Dに着地して、下に和音の音を重ねる
-  [74,78,81,86].forEach((m,j)=>shimmer(m,TI-now+.05+j*.04,.014));
-  const echo=[86,81,78,74].map((m,j)=>TI+[1.4,3.1,5.0,7.2][j]);[86,81,78,74].forEach((m,j)=>clink(m,echo[j]-now,.016-.002*j));   // 遠くで鳴るグラスのこだま
-  const pf=t=>performance.now()+(t-AC.currentTime)*1000;
-  END={pulse:notes.map(q=>pf(q.t)),echo:echo.map(pf)};
-  return{d0:T0-now,col:tb(4)*1000,on}}
+function endTones(c,lo,hi){const p=[...new Set([c[0],...c[1]].map(x=>x%12))],o=[];for(let m=lo;m<=hi;m++)if(p.includes(m%12))o.push(m);return o}
+function endImpact(T,c){if(!AC||!SET.sound)return;const now=AC.currentTime;
+  // スーッと吸い込む音(閃光へ向かってふくらむ、音程のない風)
+  if(!AU.nz){const n=AC.sampleRate*2,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;AU.nz=b}
+  const t0=Math.max(now,T-1.8),src=AC.createBufferSource(),bp=AC.createBiquadFilter(),g=AC.createGain();src.buffer=AU.nz;bp.type='bandpass';bp.Q.value=1.2;bp.frequency.setValueAtTime(350,t0);bp.frequency.exponentialRampToValueAtTime(2600,T);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.045,T-.02);g.gain.linearRampToValueAtTime(.0001,T+.06);src.connect(bp).connect(g).connect(AC.destination);src.start(t0);src.stop(T+.1);
+  // 根音の低い響き(音程は動かない)
+  const r=c[0]<36?c[0]+12:c[0];[[r-12,.16,3.2],[r,.06,2.2]].forEach(([m,v,d])=>{const o=AC.createOscillator(),gg=AC.createGain(),f=AC.createBiquadFilter();o.frequency.value=mtof(m);f.type='lowpass';f.frequency.value=400;gg.gain.setValueAtTime(.0001,T);gg.gain.exponentialRampToValueAtTime(v,T+.03);gg.gain.exponentialRampToValueAtTime(.0001,T+d);o.connect(f).connect(gg).connect(AC.destination);o.start(T);o.stop(T+d+.05)});
+  // 和音のグラスが咲く
+  const hi=endTones(c,74,93).slice(0,4);hi.forEach((m,j)=>shimmer(m,T-now+.04+j*.045,.013));clink(hi[hi.length-1],T-now,.03)}
+function endPlay(full){   // full: 環があふれて終わった(心音を鳴らす)。返り値: 崩壊の長さ(秒)
+  const now=AC.currentTime,on=synced()&&AU.out&&AU.warm,N=on?10:6,steps=[];let t=on?AU.next:now+.1;
+  for(let i=0;i<N;i++){steps.push(t);t+=BGM_STEP*(1+.07*i)}const TF=t;
+  let c=BGM_CH[0];
+  if(on){AU.rit={n:0,max:N};AU.end=true;c=BGM_CH[((AU.step+N-1)%64)>>3];
+    const fq=AU.warm.frequency;fq.cancelScheduledValues(now);fq.setValueAtTime(Math.max(260,fq.value),now);fq.exponentialRampToValueAtTime(260,TF);   // ピンチのこもりから、さらにこもる
+    const wet=AU.wet=AC.createGain();wet.gain.setValueAtTime(0,now);wet.gain.linearRampToValueAtTime(1.2,TF);AU.bus.connect(wet);wet.connect(AU.rv);   // 響きが深くなる
+    const bg=AU.bus.gain;bg.cancelScheduledValues(now);bg.setValueAtTime(.9,TF-.05);bg.linearRampToValueAtTime(0,TF+.05)}   // 吸い込まれきって、響きだけが残る
+  const hb=full?[0,2,4].map((i,j)=>{heartbeat(2,steps[i]-now,BGM_STEP*.6*(1+j*.2));return steps[i]}):[];   // 心音は間をあけて3つ打って止まる
+  const ech=endTones(c,74,88).reverse().slice(0,4),et=[1.4,3.1,5.0,7.2].map(x=>TF+x),pf=x=>performance.now()+(x-now)*1000;
+  const tm=[setTimeout(()=>{if(END){endImpact(TF,c);AU.ch=c[1]}},Math.max(0,(TF-now-2.1)*1000)),
+    ...ech.map((m,j)=>setTimeout(()=>{if(END)clink(m,Math.max(0,et[j]-AC.currentTime),.016-.002*j)},Math.max(0,(et[j]-now-.3)*1000)))];   // 予約はタイマーで(途中で新しいゲームにしたら止める)
+  END={pulse:hb.map(pf),echo:et.map(pf),tm};
+  return TF-now}
+function endStop(){if(END){END.tm.forEach(clearTimeout);END=null}}
 function gameOver(ev){
   S.over=true;ACHWAIT=true;
   const nb=S.score>ST.best;
@@ -884,11 +879,9 @@ function gameOver(ev){
   achScan();achGive('g1');if(ST.games>=10)achGive('g10x');if(ST.games>=50)achGive('g50x');if(ev==='giveup')achGive('fold');else if(S.moves<60&&ev!=='quit')achGive('crunch');
   S.newBest=nb;sendLog(ev||'over');save();refresh();
   // 重力崩壊も曲に乗せる: 次の8分で崩れはじめ、曲はその間にゆっくり消え、閃光は拍の頭(2秒以上あと)に来る
-  const rm=RM0||RM_FORCE,EP=(!rm&&AC)?endPlay():null,d0=rm?0:EP?EP.d0:0;COL_MS=rm?600:EP?Math.round(EP.col):2300;   // 崩壊は終わりの旋律と同じ長さ。主和音に着地する瞬間が閃光
+  const rm=RM0||RM_FORCE,col=(!rm&&AC)?endPlay(ev!=='giveup'&&ev!=='quit'):0,d0=0;COL_MS=rm?600:col?Math.round(col*1000):2300;   // 崩壊は「吸い込まれる」音と同じ長さ。吸い込まれきった瞬間が閃光
   hover=null;COL=Object.assign(new Number(performance.now()+d0*1000),{burst:0});
-  if(!EP||!EP.on)bgmFade(0,rm?.7:d0+COL_MS/1000);setTimeout(()=>vib(20),d0*1000);
-  sfx('flash',1,d0+COL_MS/1000);setTimeout(()=>vib([40,40,90]),d0*1000+COL_MS);
-  if(!rm&&!(EP&&EP.on))sfx('after',1,d0+COL_MS/1000);   // 曲がOFFのときの余韻の和音
+  if(!col)bgmFade(0,rm?.7:COL_MS/1000);setTimeout(()=>vib(20),d0*1000);setTimeout(()=>vib([40,40,90]),d0*1000+COL_MS);
   const tm=setTimeout(()=>{GOSKIP=null;showOver()},d0*1000+COL_MS+(rm?FLASH_MS+500:FLASH_MS*.3+AFTER_MS+250));   // 崩壊のあとの静けさは結果の後ろにも残す(COLは次のゲームで消す)
   const t1=performance.now();GOSKIP=()=>{if(performance.now()-t1<1500)return false;clearTimeout(tm);GOSKIP=null;showOver();return true};   // タップで結果へ(音楽はそのまま流れる)。終わった直後のタップは無視
 }
@@ -1039,7 +1032,7 @@ function refreshTitle(){
   if(ST.bestT)paintMini($('#tBestC'),{t:'n',v:ST.bestT},36);
   $('#a2hChip').classList.toggle('hidden',!canInstall()||isApp()||!!ST.a2h||ST.games<1);
 }
-function showTitle(){COL=0;END=null;GOSKIP=null;if(AU.hold)bgmResume(1,.8);if(ACHWAIT)achRelease();
+function showTitle(){COL=0;endStop();GOSKIP=null;if(AU.hold||AU.end)bgmResume(1,.8);if(ACHWAIT)achRelease();
   close();if(S&&!tut)save();
   onTitle=true;document.body.classList.add('onTitle');$('#title').classList.add('on');try{sky()}catch(e){}
   refreshTitle();
@@ -1187,11 +1180,13 @@ function bgmStep(i,t){
   if(pos===5)v.forEach((m,j)=>bEp(m,t+j*.028+beat*.02,2.2,.55));
   for(const [p,m] of BGM_MEL[bar])if(p*2===pos&&!(AU.loop%2===0&&Math.random()<.35))bGlass(m+12,t,.9);   // メロディは1周おきに少し間引く
 }
-function bgmSched(){if(!AC||AU.hold)return;auOut();while(AU.next<AC.currentTime+.3){bgmStep(AU.step,AU.next);AU.step=(AU.step+1)%64;if(!AU.step)AU.loop++;AU.next+=BGM_STEP}}
+function bgmSched(){if(!AC||AU.hold)return;auOut();while(AU.next<AC.currentTime+.3){bgmStep(AU.step,AU.next);AU.step=(AU.step+1)%64;if(!AU.step)AU.loop++;
+  if(AU.rit){AU.next+=BGM_STEP*(1+.07*AU.rit.n);if(++AU.rit.n>=AU.rit.max){AU.rit=null;AU.hold=true;break}}else AU.next+=BGM_STEP}}   // AU.rit: 終わりの音でテンポをゆるめ、決めた数だけ鳴らして止める
 function bgmStart(){ac();if(!AC||AU.playing)return;AU.playing=true;AU.step=0;AU.loop=0;AU.next=AC.currentTime+.2;AU.timer=setInterval(bgmSched,25)}
 function bgmStop(){AU.playing=false;clearInterval(AU.timer)}
-function bgmResume(to,sec){   // 終わりの旋律のあと、曲を頭から小さく戻す
-  if(!AU.hold)return bgmFade(to,sec);AU.hold=false;if(!AC||!AU.out)return;AU.step=0;AU.loop=0;AU.next=AC.currentTime+.15;
+function bgmResume(to,sec){   // 終わりの音のあと、曲を頭から小さく戻す(こもり・響き・音量も元に)
+  if(!AU.hold&&!AU.end)return bgmFade(to,sec);AU.hold=false;AU.end=false;AU.rit=null;if(!AC||!AU.out)return;AU.step=0;AU.loop=0;AU.next=AC.currentTime+.15;
+  try{const n=AC.currentTime;AU.bus.gain.cancelScheduledValues(n);AU.bus.gain.setValueAtTime(.9,n);AU.warm.frequency.cancelScheduledValues(n);AU.warm.frequency.setValueAtTime(5200,n);AU.muf=5200;if(AU.wet){AU.wet.disconnect();AU.wet=null}}catch(e){}
   const g=AU.out.gain;try{g.cancelScheduledValues(AC.currentTime);g.setValueAtTime(.0001,AC.currentTime);g.linearRampToValueAtTime(BGM_VOL[SET.bgm||0]*to,AC.currentTime+sec)}catch(e){}}
 function bgmFade(to,sec){if(!AC||!AU.out)return;const g=AU.out.gain,v=to?BGM_VOL[SET.bgm||0]*to:0;try{g.cancelScheduledValues(AC.currentTime);g.setValueAtTime(g.value,AC.currentTime);g.linearRampToValueAtTime(v,AC.currentTime+sec)}catch(e){g.value=v}}
 function bgmApply(){if(!SET.bgm){bgmStop();return}bgmStart();const o=auOut();if(o)o.gain.value=BGM_VOL[SET.bgm]}
