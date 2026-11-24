@@ -40,8 +40,9 @@ header{width:100%;display:grid;grid-template-columns:56px 1fr 56px;align-items:c
 #bestl{font-size:13px;color:var(--sub)}
 .ib{width:48px;height:48px;border:0;border-radius:14px;background:transparent;color:var(--ink);display:grid;place-items:center;justify-self:end}
 .ib svg{width:26px;height:26px}
-#tip{min-height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;font-size:17px;font-weight:800;color:#dfe8f1;text-align:center}
-#tip button{border:0;background:rgba(255,255,255,.06);color:var(--sub);font:500 14px var(--f);padding:6px 12px;border-radius:10px}
+#tip{position:relative;align-self:stretch;height:56px;flex:none;display:flex;align-items:center;justify-content:center;padding:0 18px;font-size:16px;line-height:1.4;font-weight:800;color:#dfe8f1;text-align:center;word-break:keep-all;overflow-wrap:anywhere;line-break:strict}   /* 高さは2行ぶんで固定(文の長さで盤が上下に動かないように) */
+#tip small{font-size:13px;font-weight:600;color:var(--sub)}
+#tip button{position:absolute;right:12px;top:100%;margin-top:2px;z-index:3;border:0;background:rgba(255,255,255,.06);color:var(--sub);font:500 13px var(--f);padding:5px 11px;border-radius:10px}   /* スキップは文の流れに入れず、盤の右上の角に */
 #wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
 #cv{touch-action:none;display:block}
 footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 14px calc(14px + env(safe-area-inset-bottom))}
@@ -209,8 +210,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.11.0';
+const VER='0.11.1';
 const CHANGES=[
+  ['0.11.1','2026-11-25',['📐 チュートリアルなどの案内文の高さを2行ぶんで固定して、文の長さで盤が上下にガクガク動かないようにしました','✂ 案内文の折り返しを、意味の切れ目で改行するように直しました。スキップボタンは文の横ではなく、盤の右上の角に置きました']],
   ['0.11.0','2026-11-25',['🌀 終わりの音を作り直しました。曲は止まらずにそのまま流れ、ピンチのこもりがさらに深まり、響きが深くなり、少しずつゆっくりになって重力に吸い込まれていきます。心音は間をあけて3つ打って止まります','✨ 閃光の音も曲に合わせました。スーッと吸い込む風の音のあと、そのとき鳴っている和音の根音が低く響き、和音のグラスがぱっと咲きます(以前の、音程が下へすべる音はやめました)','🥂 結果画面の和音も、サイン波からグラスの音に変えました']],
   ['0.10.1','2026-11-24',['〰 のこり2つ以下のとき、星が小さくふるえる(ウネウネする)動きをやめました。赤いにじみ・心音・中心へ引き寄せられる動きはそのままです']],
   ['0.10.0','2026-11-24',['🎼 終わりの旋律: 宇宙が終わるとき、曲がゆっくりになりながら G → A → D と進み、遊んでいるあいだ一度も着地しなかった主和音に初めて着地します(そこで閃光)。上では、そのゲームで大きかった連鎖の音が、合体と同じグラスの音で旋律になって流れ、遠くでこだまします','✨ 旋律の一音ごとに中心の光がふくらみ、こだまのたびに残った星がふっと明るくなります。結果画面では点数が数えあがる音と、数え終わりの和音が鳴り、曲は頭から小さく戻ってきます','👆 余韻のあいだは画面をタップすると結果へ飛ばせます(音楽はそのまま流れます)。実績のお知らせは結果が出そろってから出ます','📱 スマホの省エネ設定(アニメーション削除・動きを減らす)をオンにしていても、演出が省かれないようにしました']],
@@ -791,7 +793,7 @@ function keepSwap(i){
   if(tut&&TUT[tut.step].act.k!=='keep'){sfx('ng');vib(20);return}
   if(locked()||!S.center)return;
   if(S.kept){sfx('ng');flashTip('KEEPは1手に1回まで');return}
-  if(S.center.abs&&S.center.t==='n'){sfx('ng');flashTip('吸い込んだ星は、そのまま置くか彗星に変えてね');return}
+  if(S.center.abs&&S.center.t==='n'){sfx('ng');flashTip('吸い込んだ星は<br>そのまま置くか彗星に変えてね');return}
   if(!S.hold)S.hold=[];const cur={t:S.center.t,v:S.center.v},h=S.hold[i]||null;
   S.hold[i]=cur;
   if(h)S.center=h;else{S.center=S.queue.shift();S.queue.push(gen())}
@@ -965,7 +967,7 @@ function showSettings(back){
     if(b.dataset.v==='0'){SET.skyHere=0;store('lapis_set',SET);sky();again();return}
     if(!navigator.geolocation){flashTip('この端末では現在地が使えません');return}
     b.textContent='…';navigator.geolocation.getCurrentPosition(p=>{SET.skyHere=1;SET.skyLat=Math.round(p.coords.latitude*10)/10;SET.skyLon=Math.round(p.coords.longitude*10)/10;store('lapis_set',SET);sky();again()},
-      ()=>{SET.skyHere=0;store('lapis_set',SET);again();flashTip('現在地が取れなかったので、日本の空のままです')},{timeout:10000,maximumAge:86400000});
+      ()=>{SET.skyHere=0;store('lapis_set',SET);again();flashTip('現在地が取れなかったので<br>日本の空のままです')},{timeout:10000,maximumAge:86400000});
   });
   if(canShare()){
     document.querySelectorAll('#sR button').forEach(b=>b.onclick=()=>{
@@ -1306,7 +1308,7 @@ function showAch(back){
 }
 
 /* ---------- 画面の更新 ---------- */
-function setTip(txt,skip){tipEl.innerHTML=txt+(skip?' <button id="skipB">スキップ</button>':'');if(skip)$('#skipB').onclick=()=>{tutEnd()}}
+function setTip(txt,skip){tipEl.innerHTML='<span>'+txt+'</span>'+(skip?'<button id="skipB">スキップ</button>':'');if(skip)$('#skipB').onclick=()=>{tutEnd()}}
 function flashTip(txt){tipLock=Date.now()+2600;setTip(txt);setTimeout(()=>{if(Date.now()>=tipLock)refresh()},2700)}
 function refresh(){
   if(!S)return;
@@ -1318,7 +1320,7 @@ function refresh(){
   while(nl.children.length>S.queue.length)nl.lastChild.remove();
   S.queue.forEach((q,i)=>paintMini(nl.children[i],q,44));
   $('#perkl').innerHTML=Object.keys(S.perks).filter(k=>k!=='clean').map(k=>`<button class="pk" data-k="${k}" aria-label="${PERKS[k].n}">${icon(k)}${S.perks[k]>1?`<b>${S.perks[k]}</b>`:''}</button>`).join('');
-  document.querySelectorAll('.pk').forEach(b=>b.onclick=()=>flashTip(PERKS[b.dataset.k].n+':'+PERKS[b.dataset.k].d));
+  document.querySelectorAll('.pk').forEach(b=>b.onclick=()=>flashTip(PERKS[b.dataset.k].n+'<br><small>'+PERKS[b.dataset.k].d+'</small>'));
   const kl=$('#keepl'),hn=tut?1:holdN();if(!S.hold)S.hold=[];
   while(kl.children.length<hn)kl.appendChild(document.createElement('canvas'));
   while(kl.children.length>hn)kl.lastChild.remove();
@@ -1338,13 +1340,13 @@ function refresh(){
 const TUT=[
   {ring:[1,1,2,3],center:{t:'p'},act:{k:'g',i:1},tip:'彗星＋を同じ数のあいだに置こう'},
   {ring:[3,2,1,1,2,3],center:{t:'p'},act:{k:'g',i:3},tip:'左右がそろうと連鎖する!'},
-  {ring:[2,1,2,4],center:{t:'m'},act:{k:'a',i:1},tip:'ワームホール－は星を吸い込める。1をタップ'},
-  {keep:1,act:{k:'c'},tip:'まん中をタップすると彗星＋に変わる'},
+  {ring:[2,1,2,4],center:{t:'m'},act:{k:'a',i:1},tip:'ワームホール－は星を吸い込める<br>1をタップ'},
+  {keep:1,act:{k:'c'},tip:'まん中をタップすると<br>彗星＋に変わる'},
   {keep:1,act:{k:'g',i:1},tip:'2と2のあいだに置こう'},
-  {ring:[1,2,4,5],center:{t:'p'},queue:[{t:'n',v:2}],act:{k:'keep'},tip:'合体できる場所がない…そんなときは右下のKEEPにしまえる。KEEPをタップ'},
-  {keep:1,act:{k:'g',i:2},tip:'2を、となりの2にくっつけて置こう'},
-  {keep:1,center:{t:'n',v:3},act:{k:'keep'},tip:'もう一度KEEPをタップすると、しまった彗星＋と入れかわる'},
-  {keep:1,act:{k:'g',i:2},tip:'2と2のあいだに置こう(KEEPは1手に1回まで)'}
+  {ring:[1,2,4,5],center:{t:'p'},queue:[{t:'n',v:2}],act:{k:'keep'},tip:'置ける場所がないときは<br>右下のKEEPにしまえる。KEEPをタップ'},
+  {keep:1,act:{k:'g',i:2},tip:'2を、となりの2に<br>くっつけて置こう'},
+  {keep:1,center:{t:'n',v:3},act:{k:'keep'},tip:'もう一度KEEPをタップすると<br>しまった彗星＋と入れかわる'},
+  {keep:1,act:{k:'g',i:2},tip:'2と2のあいだに置こう<br><small>KEEPは1手に1回まで</small>'}
 ];
 function startTut(prev){
   saved=prev;tut={step:0};
