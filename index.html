@@ -45,16 +45,17 @@ header{width:100%;display:grid;grid-template-columns:56px 1fr 56px;align-items:c
 #tip button{position:absolute;right:12px;top:100%;margin-top:2px;z-index:3;border:0;background:rgba(255,255,255,.06);color:var(--sub);font:500 13px var(--f);padding:5px 11px;border-radius:10px}   /* スキップは文の流れに入れず、盤の右上の角に */
 #wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
 #cv{touch-action:none;display:block}
-footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 14px calc(14px + env(safe-area-inset-bottom))}
+footer{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:8px 10px calc(14px + env(safe-area-inset-bottom))}
 .next{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border-radius:16px;padding:6px 10px}
 .next span{font-size:12px;font-weight:800;color:var(--sub);writing-mode:vertical-rl;letter-spacing:.05em}
 #nextl{display:flex;gap:4px}
 #nextl canvas{width:44px;height:44px}
 #keepl{display:flex;gap:4px}#keepl canvas{width:44px;height:44px}.keep{cursor:pointer;transition:opacity .2s,box-shadow .3s}.keep.off{opacity:.42}
 .keep.hint{animation:keepHint 1.2s ease-in-out infinite}.keep.tut{animation:keepTut 1.1s ease-in-out infinite}@keyframes keepTut{0%,100%{box-shadow:0 0 0 1.5px rgba(216,189,106,.35) inset}50%{box-shadow:0 0 0 2.5px rgba(216,189,106,.95) inset,0 0 16px rgba(216,189,106,.35)}}@keyframes keepHint{0%,100%{box-shadow:0 0 0 1.5px rgba(255,170,140,.25) inset}50%{box-shadow:0 0 0 2px rgba(255,170,140,.85) inset,0 0 14px rgba(255,140,110,.35)}}
-#perkl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.pk{position:relative;width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--ink)}
-.pk svg{width:24px;height:24px}
+#perkl{display:grid;grid-template-columns:repeat(2,26px);gap:5px;justify-content:center;align-content:center}   /* 加護は最大4つ → 2×2で並べる(縦一列に伸びて盤を押し上げないように) */
+.pk{position:relative;width:26px;height:26px;padding:0;border-radius:8px;border:0;background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--ink)}
+.pk svg{width:17px;height:17px}
+#perkl .pk b{right:-6px;top:-6px;min-width:15px;height:15px;border-radius:8px;font-size:10px;line-height:15px;padding:0 3px}
 .pk b,.ub b{position:absolute;right:-4px;top:-4px;min-width:20px;height:20px;border-radius:10px;background:#c9cfe4;color:#0f1430;font-size:12px;line-height:20px;text-align:center;padding:0 4px}
 .ub{position:relative;width:64px;height:64px;border:0;border-radius:20px;background:var(--btn);color:var(--ink);display:grid;place-items:center}
 .ub svg{width:30px;height:30px}
@@ -210,8 +211,9 @@ body.onTitle #app{visibility:hidden}
 <div class="ov" id="ov"><div class="panel" id="pn"></div></div>
 <script>
 {
-const VER='0.11.1';
+const VER='0.11.2';
 const CHANGES=[
+  ['0.11.2','2026-11-25',['🧩 下の加護のアイコンが縦一列に並んで伸びていたのを、小さくして2×2にまとめました(望遠鏡でNEXTが2つ、ポケットでKEEPが2つになったとき、まん中の幅が足りなくなっていました)']],
   ['0.11.1','2026-11-25',['📐 チュートリアルなどの案内文の高さを2行ぶんで固定して、文の長さで盤が上下にガクガク動かないようにしました','✂ 案内文の折り返しを、意味の切れ目で改行するように直しました。スキップボタンは文の横ではなく、盤の右上の角に置きました']],
   ['0.11.0','2026-11-25',['🌀 終わりの音を作り直しました。曲は止まらずにそのまま流れ、ピンチのこもりがさらに深まり、響きが深くなり、少しずつゆっくりになって重力に吸い込まれていきます。心音は間をあけて3つ打って止まります','✨ 閃光の音も曲に合わせました。スーッと吸い込む風の音のあと、そのとき鳴っている和音の根音が低く響き、和音のグラスがぱっと咲きます(以前の、音程が下へすべる音はやめました)','🥂 結果画面の和音も、サイン波からグラスの音に変えました']],
   ['0.10.1','2026-11-24',['〰 のこり2つ以下のとき、星が小さくふるえる(ウネウネする)動きをやめました。赤いにじみ・心音・中心へ引き寄せられる動きはそのままです']],
